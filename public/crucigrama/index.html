@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crucigrama de Física - Cinemática</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="dificultad.css">
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🧩 Crucigrama de Cinemática</h1>
+      <p>Resuelve el crucigrama usando las pistas. Haz clic en una pista para resaltar la palabra.</p>
+    </header>
+    
+    <!-- ============ NIVEL ACTUAL ============ -->
+<div class="nivel-header">
+  <div class="nivel-info">
+    <span class="nivel-label">Nivel</span>
+    <span class="nivel-number" id="nivelActual">1</span>
+    <span class="nivel-max">/ <span id="nivelMaximo">20</span></span>
+  </div>
+  <button id="btnSiguienteNivel" class="btn-siguiente" style="display:none;">
+    🚀 Siguiente nivel
+  </button>
+  <button id="btnReiniciarProgreso" class="btn-reiniciar" title="Borrar progreso">
+    🗑️
+  </button>
+</div>
+    <div class="message" id="message"></div>
+
+    <div class="stats">
+      <span>Palabras: <strong id="statWords">0</strong></span>
+      <span>Resueltas: <strong id="statSolved">0</strong></span>
+      <span>Progreso: <strong id="statProgress">0%</strong></span>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="checkAnswers()">✅ Comprobar</button>
+      <button class="secondary" onclick="revealSolutions()">💡 Mostrar solución</button>
+      <button class="danger" onclick="resetCrossword()">🔄 Reiniciar</button>
+    </div>
+
+    <div class="main-layout">
+      <div class="grid-wrapper">
+        <div id="crossword"></div>
+      </div>
+      <div class="clues">
+        <div class="clue-box">
+          <h3>➡️ Horizontal</h3>
+          <ul class="clue-list" id="acrossClues"></ul>
+        </div>
+        <div class="clue-box">
+          <h3>⬇️ Vertical</h3>
+          <ul class="clue-list" id="downClues"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+      <h3 class="section-title">📚 Palabras Aprendidas</h3>
+      <ul class="word-list" id="wordList"></ul>
+    </div>
+  </div>
+
+<script src="script.js"></script>
+<script src="dificultad.js"></script>
+</body>
+</html>

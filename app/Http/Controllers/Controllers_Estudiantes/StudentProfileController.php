@@ -41,7 +41,7 @@ class StudentProfileController extends Controller
         ['user_id' => $user->id],
         [
             'nickname' => $request->nickname ?? $request->name,
-            'avatar_name' => $request->avatar_name, // <-- Aquí guardamos el avatar seleccionado (.jpg)
+            'avatar_name' => $request->avatar_name, // <-- guarda el avatar
             'classroom' => $request->classroom,
         ]
     );
