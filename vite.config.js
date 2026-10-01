@@ -6,7 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/profile.js', 'resources/js/step-puzzle.js', 
+                'resources/js/docente-question-hard-lab.js' , 'resources/js/blackboard-quiz.js'],
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {

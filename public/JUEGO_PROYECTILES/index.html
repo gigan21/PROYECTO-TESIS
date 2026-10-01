@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Artillería Orbital</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="game-container">
+
+    <!-- Zona de juego -->
+    <canvas id="game-canvas" aria-label="Zona de juego"></canvas>
+
+    <!-- HUD superior -->
+    <header class="hud">
+        <div class="panel hud-panel hud-level">
+            <span class="hud-label">Nivel</span>
+            <div class="hud-row">
+                <span class="hud-value"><span id="level-value">1</span><small> / 5</small></span>
+                <span class="pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            </div>
+        </div>
+
+        <div class="panel hud-panel hud-enemies">
+            <div class="hud-row hud-row-between">
+                <span class="hud-label">Flota enemiga</span>
+                <span class="hud-count" id="enemy-count">—</span>
+            </div>
+            <div class="enemy-bar" aria-hidden="true"><i id="enemy-bar"></i></div>
+        </div>
+
+        <div class="panel hud-panel hud-score">
+            <span class="hud-label">Puntos</span>
+            <span class="hud-value" id="score-value">0</span>
+            <span class="hud-best">Récord <b id="best-value">0</b></span>
+        </div>
+
+        <div class="hud-tools">
+            <button id="sound-btn" class="panel icon-btn" type="button" aria-label="Activar o silenciar sonido">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+                    <path class="waves" d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path class="slash" d="M17 9l5 6M22 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <button id="pause-btn" class="panel icon-btn" type="button" aria-label="Pausar">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <rect x="6" y="5" width="4" height="14" rx="1"/>
+                    <rect x="14" y="5" width="4" height="14" rx="1"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Aviso de nivel -->
+    <div id="banner" class="banner" aria-live="polite">
+        <span class="banner-title" id="banner-title"></span>
+        <span class="banner-sub" id="banner-sub"></span>
+    </div>
+
+    <!-- Consola de control de la nave -->
+    <section id="console" class="panel console" aria-label="Consola de control de la nave">
+
+        <div class="module module-angle">
+            <div class="module-head">
+                <label for="angle-slider">Ángulo de la torreta</label>
+                <output id="angle-readout" class="readout" for="angle-slider">70°</output>
+            </div>
+            <div class="module-body">
+                <svg class="dial" viewBox="0 0 100 58" aria-hidden="true">
+                    <path class="dial-arc" d="M8 54 A42 42 0 0 1 92 54" />
+                    <path class="dial-tick" d="M8 54 H16 M92 54 H84 M50 12 V20" />
+                    <g id="dial-needle" transform="rotate(20 50 54)">
+                        <line class="dial-needle" x1="50" y1="54" x2="50" y2="14" />
+                    </g>
+                    <circle class="dial-hub" cx="50" cy="54" r="4" />
+                </svg>
+                <input id="angle-slider" class="slider slider-angle" type="range" min="10" max="170" step="1" value="110">
+            </div>
+        </div>
+
+        <div class="fire-zone" id="fire-zone">
+            <button id="fire-btn" class="fire-btn" type="button" aria-label="Disparar">
+                <span class="fire-ring"></span>
+                <span class="fire-core"></span>
+                <span class="fire-cool"></span>
+                <span class="fire-label">Disparar</span>
+            </button>
+            <p class="fire-hint">Pulsa y suelta</p>
+        </div>
+
+        <div class="module module-power">
+            <div class="module-head">
+                <label for="power-slider">Fuerza de disparo</label>
+                <output id="power-readout" class="readout" for="power-slider">60%</output>
+            </div>
+            <div class="module-body module-body-col">
+                <input id="power-slider" class="slider slider-power" type="range" min="15" max="100" step="1" value="60">
+                <div class="power-cells" id="power-cells" aria-hidden="true"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pantallas -->
+    <div id="screen-menu" class="screen is-open" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+        <div class="panel screen-card">
+            <h1 id="menu-title" class="game-title">Artillería Orbital</h1>
+            <p class="lead">Una flota alienígena desciende hacia tu nave. En este sector la gravedad sigue tirando de tus proyectiles: calcula la parábola y derríbalos antes de que lleguen a tu altura.</p>
+            <ul class="howto">
+                <li>Ajusta el ángulo y la fuerza en la consola, pulsa y suelta para disparar.</li>
+                <li>La estela de cada tiro queda visible un momento para que corrijas el siguiente.</li>
+                <li>Encadenar aciertos sin fallar multiplica los puntos. Son 5 niveles.</li>
+                <li>Teclado: flechas o A/D para el ángulo, arriba y abajo para la fuerza, espacio para disparar, P para pausar.</li>
+            </ul>
+            <button id="start-btn" class="btn" type="button">Iniciar misión</button>
+        </div>
+    </div>
+
+    <div id="screen-pause" class="screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" inert>
+        <div class="panel screen-card screen-card-small">
+            <h2 id="pause-title" class="screen-title">Pausa</h2>
+            <button id="resume-btn" class="btn" type="button">Continuar</button>
+        </div>
+    </div>
+
+    <div id="screen-over" class="screen" role="dialog" aria-modal="true" aria-labelledby="over-title" inert>
+        <div class="panel screen-card">
+            <h2 id="over-title" class="screen-title screen-title-danger">Los aliens llegaron a tu altura</h2>
+            <dl class="stats">
+                <div><dt>Nivel alcanzado</dt><dd id="over-level">1</dd></div>
+                <div><dt>Puntos</dt><dd id="over-score">0</dd></div>
+                <div><dt>Récord</dt><dd id="over-best">0</dd></div>
+            </dl>
+            <button id="retry-btn" class="btn" type="button">Reintentar</button>
+        </div>
+    </div>
+
+    <div id="screen-win" class="screen" role="dialog" aria-modal="true" aria-labelledby="win-title" inert>
+        <div class="panel screen-card">
+            <h2 id="win-title" class="screen-title">Flota aniquilada</h2>
+            <p class="lead">Superaste los 5 niveles. El sector vuelve a estar en calma.</p>
+            <dl class="stats">
+                <div><dt>Puntos</dt><dd id="win-score">0</dd></div>
+                <div><dt>Récord</dt><dd id="win-best">0</dd></div>
+            </dl>
+            <button id="again-btn" class="btn" type="button">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <!-- Estante de imágenes: los GIF deben estar en el DOM para que se animen al dibujarlos en el canvas -->
+    <div id="asset-shelf" aria-hidden="true"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
