@@ -39,15 +39,9 @@
                 </a>
             </div>
 
-            <div class="mt-5 w-full">
-                <p class="mb-2 text-left text-sm font-semibold text-slate-300">🏅 Logros y medallas</p>
-                <div class="grid grid-cols-3 gap-2">
-                    @for ($i = 0; $i < 6; $i++)
-                        <div class="flex aspect-square items-center justify-center rounded-lg border border-dashed border-white/20 bg-black/20 text-lg text-white/20">?</div>
-                    @endfor
-                </div>
-                <p class="mt-2 text-xs text-slate-500">Completa misiones para desbloquear medallas.</p>
-            </div>
+            <x-student-progress :progress="$progress" />
+
+            <x-student-badges :badges="$badges" />
         </div>
     </aside>
 

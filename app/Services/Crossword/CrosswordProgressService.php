@@ -49,6 +49,7 @@ class CrosswordProgressService
             $progress->increment('total_correct_attempts');
             $progress->refresh();
             $progress->syncCoinsFromAttempts();
+            $this->syncProfileCoins($user, $progress);
             $coinsDelta = $progress->coins_earned - $oldCoins;
 
             $xpAwarded = self::XP_PER_WORD;
@@ -124,8 +125,19 @@ class CrosswordProgressService
             'last_played_at' => null,
         ]);
         $progress->save();
+        $this->syncProfileCoins($user, $progress);
 
         return $progress;
+    }
+
+    private function syncProfileCoins(User $user, CrosswordProgress $progress): void
+    {
+        $profile = $user->studentProfile;
+        if ($profile === null) {
+            return;
+        }
+
+        $profile->update(['coins' => $progress->coins_earned]);
     }
 
     /** @return array<string, mixed> */
