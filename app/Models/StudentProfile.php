@@ -13,7 +13,16 @@ class StudentProfile extends Model
         'nickname',
         'avatar_name',
         'xp_points',
+        'coins',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'xp_points' => 'integer',
+            'coins' => 'integer',
+        ];
+    }
 
     public function user(): BelongsTo
     {

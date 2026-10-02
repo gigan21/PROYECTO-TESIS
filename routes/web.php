@@ -14,6 +14,7 @@ use App\Http\Controllers\Controllers_Docentes\QuestionController;
 use App\Http\Controllers\Controllers_Estudiantes\ChallengePlayController;
 use App\Http\Controllers\Controllers_Estudiantes\CrosswordPlayController;
 use App\Http\Controllers\Controllers_Estudiantes\GamificationController;
+use App\Http\Controllers\Controllers_Estudiantes\StudentHomeController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentProfileController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentQuizController;
 
@@ -106,9 +107,7 @@ Route::middleware(['auth', 'teacher'])->prefix('docente')->name('docente.')->gro
 // Rutas para ESTUDIANTES (Un solo bloque limpio)
 Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () {
     
-    Route::get('/inicio', function () {
-        return view('estudiante.inicio');
-    })->name('estudiante.inicio');
+    Route::get('/inicio', [StudentHomeController::class, 'index'])->name('estudiante.inicio');
 
     // --- RUTAS DEL PERFIL ---
     Route::get('/perfil', [StudentProfileController::class, 'edit'])

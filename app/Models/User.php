@@ -42,6 +42,13 @@ class User extends Authenticatable
         return $this->hasMany(CrosswordEvent::class);
     }
 
+    public function badges(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'badge_student')
+            ->withTimestamps()
+            ->withPivot('unlocked_at');
+    }
+
     public function isDocente(): bool
     {
         return $this->role === 'docente';
