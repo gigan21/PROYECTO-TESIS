@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'last_seen'])]
+#[Fillable(['name', 'email', 'password', 'role', 'last_seen', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -49,6 +49,16 @@ class User extends Authenticatable
             ->withPivot('unlocked_at');
     }
 
+    public function learningLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LearningLog::class);
+    }
+
+    public function aiRecommendations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AiRecommendation::class);
+    }
+
     public function isDocente(): bool
     {
         return $this->role === 'docente';
@@ -58,7 +68,10 @@ class User extends Authenticatable
     {
         return $this->role === 'estudiante';
     }
-
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
     public function isTeacher(): bool
     {
         return $this->isDocente();
@@ -74,19 +87,14 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-      public function getIsActiveAttribute(): bool
-{
-    if (!$this->last_seen) {
-        return false;
-    }
-    return $this->last_seen->diffInMinutes(now()) < 2;
-}
+   
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_seen' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
   
