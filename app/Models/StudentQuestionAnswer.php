@@ -12,6 +12,7 @@ class StudentQuestionAnswer extends Model
         'question_id',
         'question_option_id',
         'is_correct',
+        'is_skipped',
         'xp_earned',
         'answered_at',
     ];
@@ -20,6 +21,7 @@ class StudentQuestionAnswer extends Model
     {
         return [
             'is_correct' => 'boolean',
+            'is_skipped' => 'boolean',
             'xp_earned' => 'integer',
             'answered_at' => 'datetime',
         ];

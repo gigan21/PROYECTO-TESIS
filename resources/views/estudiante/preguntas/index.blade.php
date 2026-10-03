@@ -143,7 +143,7 @@
                     @else
 
                         <!-- FORMULARIO OPCIÓN MÚLTIPLE (Fácil) -->
-                        <form method="POST" action="{{ route('estudiante.preguntas.responder', $question) }}" class="space-y-6">
+                        <form method="POST" action="{{ route('estudiante.preguntas.responder', $question) }}" class="space-y-6" id="form-responder">
                             @csrf
                             <input type="hidden" name="time_taken" id="time_taken_input" value="0">
 
@@ -172,18 +172,25 @@
                                     </label>
                                 @endforeach
                             </div>
-
-                            <!-- BOTONES DE ACCIÓN -->
-                            <div class="mt-8 flex flex-col items-center gap-4 border-t border-white/5 pt-6 sm:flex-row sm:justify-end">
-                                <a href="{{ route('estudiante.preguntas.index') }}" class="w-full rounded-xl border border-white/10 bg-transparent px-6 py-3.5 text-center text-sm font-bold text-slate-400 transition hover:bg-white/5 hover:text-white sm:w-auto">
-                                    Saltar misión
-                                </a>
-                                
-                                <button type="submit" class="w-full rounded-xl bg-amber-500 px-8 py-3.5 text-sm font-bold text-slate-900 transition hover:bg-amber-400 hover:scale-[1.02] active:scale-95 shadow-md shadow-amber-500/20 sm:w-auto">
-                                    Aceptar misión
-                                </button>
-                            </div>
                         </form>
+
+                        <!-- BOTONES DE ACCIÓN (Separados del formulario principal) -->
+                        <div class="mt-8 flex flex-col items-center gap-4 border-t border-white/5 pt-6 sm:flex-row sm:justify-end">
+                            
+                            <!-- Formulario independiente para SALTAR -->
+                            <form action="{{ route('estudiante.preguntas.skip', $question->id) }}" method="POST" class="w-full sm:w-auto">
+                                @csrf
+                                <!-- El atributo formnovalidate le dice al navegador que ignore los required de otros formularios -->
+                                <button type="submit" formnovalidate class="w-full rounded-xl border border-white/10 bg-transparent px-6 py-3.5 text-center text-sm font-bold text-slate-400 transition hover:bg-white/5 hover:text-white">
+                                    Saltar misión
+                                </button>
+                            </form>
+                                
+                            <!-- Botón que envía el formulario principal -->
+                            <button type="submit" form="form-responder" class="w-full rounded-xl bg-amber-500 px-8 py-3.5 text-sm font-bold text-slate-900 transition hover:bg-amber-400 hover:scale-[1.02] active:scale-95 shadow-md shadow-amber-500/20 sm:w-auto">
+                                Aceptar misión
+                            </button>
+                        </div>
 
                     @endif
                 </div>

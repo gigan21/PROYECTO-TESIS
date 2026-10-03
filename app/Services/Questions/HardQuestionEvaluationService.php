@@ -13,7 +13,8 @@ class HardQuestionEvaluationService
 {
     public function __construct(
         private readonly HardAnswerNormalizer $normalizer,
-        private readonly XpAwardService $xpAwards
+        private readonly XpAwardService $xpAwards,
+        private readonly \App\Services\Analytics\LearningLogSyncService $logSync
     ) {}
 
     /**
@@ -65,6 +66,11 @@ class HardQuestionEvaluationService
                 'xp_earned' => $xpEarned,
                 'answered_at' => now(),
             ]);
+            
+            // Sincronizar con la IA / Analytics
+            $this->logSync->syncForQuestion($student, $question, $timeTaken);
+
+            return $answer;
         });
     }
 }

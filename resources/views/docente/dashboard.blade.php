@@ -32,6 +32,17 @@
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">XP en logs</p>
                     <p class="mt-2 text-3xl font-bold text-emerald-600">{{ number_format($summary['total_xp']) }}</p>
                 </div>
+                <!-- TARJETA: MISIONES SALTADAS -->
+<div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+        </span>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Misiones Omitidas</h3>
+    </div>
+    <p class="mt-4 text-3xl font-extrabold text-orange-600">{{ $summary['total_skips'] }}</p>
+    <p class="mt-1 text-xs text-slate-400">Indicador de dificultad</p>
+</div>
             </div>
 
             <div class="grid gap-6 lg:grid-cols-2">
@@ -42,6 +53,7 @@
                         <canvas id="chartClassroomErrors" aria-label="Errores por paralelo"></canvas>
                     </div>
                 </div>
+                
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <h3 class="text-sm font-semibold text-slate-800">Tiempo por tipo de juego</h3>
                     <p class="mt-1 text-xs text-slate-500">Segundos promedio Tiempo (Crucigramas, Salas de Retos, etc.)</p>

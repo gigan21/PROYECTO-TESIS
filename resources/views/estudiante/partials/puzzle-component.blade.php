@@ -50,11 +50,17 @@
                     ► Enviar Respuesta
                 </button>
                 
-                <a href="{{ route('estudiante.preguntas.index') }}" class="w-full sm:w-auto border-4 border-slate-900 bg-slate-200 px-8 py-3 text-xl font-bold text-slate-800 shadow-[6px_6px_0px_rgba(0,0,0,0.8)] transition-transform hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_rgba(0,0,0,0.8)] text-center uppercase">
-                    Saltar
-                </a>
+
 
             </div>
         </form>
+        <div class="mt-4 flex justify-center">
+            <form action="{{ route('estudiante.preguntas.skip', $question->id) }}" method="POST" class="w-full sm:w-auto">
+                @csrf
+                <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
+                    Saltar misión
+                </button>
+            </form>
+        </div>
     </div>
 </div>

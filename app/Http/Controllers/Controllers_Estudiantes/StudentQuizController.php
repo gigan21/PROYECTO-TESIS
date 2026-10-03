@@ -118,4 +118,27 @@ class StudentQuizController extends Controller
             ->route('estudiante.preguntas.index')
             ->with('gamification_status', $message);
     }
+    public function skip(Request $request, Question $question, \App\Services\Analytics\LearningLogSyncService $logSync): RedirectResponse
+    {
+        // 1. Guardamos el intento explícitamente como "saltado"
+        \App\Models\StudentQuestionAnswer::create([
+            'student_id' => $request->user()->id,
+            'question_id' => $question->id,
+            // Asignamos la primera opción de la pregunta por defecto para que la BD no falle por campo nulo
+            'question_option_id' => $question->options()->first()?->id, 
+            'is_correct' => false,
+            'is_skipped' => true,
+            'xp_earned' => 0,
+            'answered_at' => now(),
+        ]);
+
+        // 2. Sincronizamos la estadística para el algoritmo C4.5
+        // Enviamos '0' como tiempo tomado, ya que no intentó resolverla
+        $logSync->syncForQuestion($request->user(), $question, 0);
+
+        // 3. Redirigimos a la siguiente pregunta con un mensaje de feedback
+        return redirect()
+            ->route('estudiante.preguntas.index')
+            ->with('gamification_status', 'Misión omitida. No has ganado XP, ¡pero inténtalo en la siguiente!');
+    }
 }

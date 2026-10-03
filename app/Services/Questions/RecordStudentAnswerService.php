@@ -13,7 +13,8 @@ use RuntimeException;
 class RecordStudentAnswerService
 {
     public function __construct(
-        private readonly XpAwardService $xpAwards
+        private readonly XpAwardService $xpAwards,
+        private readonly \App\Services\Analytics\LearningLogSyncService $logSync
     ) {}
 
     public function record(User $student, Question $question, QuestionOption $option, int $timeTaken = 0): StudentQuestionAnswer
@@ -45,7 +46,7 @@ class RecordStudentAnswerService
                 $this->xpAwards->award($student, $xpEarned);
             }
 
-            return StudentQuestionAnswer::query()->create([
+            $answer = StudentQuestionAnswer::query()->create([
                 'student_id' => $student->id,
                 'question_id' => $question->id,
                 'question_option_id' => $option->id,
@@ -53,6 +54,10 @@ class RecordStudentAnswerService
                 'xp_earned' => $xpEarned,
                 'answered_at' => now(),
             ]);
+             // Sincronizar con la IA / Analytics
+            $this->logSync->syncForQuestion($student, $question, $timeTaken);
+
+            return $answer;
         });
     }
 }

@@ -12,7 +12,8 @@ use RuntimeException;
 class StepPuzzleService
 {
     public function __construct(
-        private readonly XpAwardService $xpAwards
+        private readonly XpAwardService $xpAwards,
+        private readonly \App\Services\Analytics\LearningLogSyncService $logSync
     ) {}
 
     public function evaluate(User $student, Question $question, array $submittedOptionIds, int $timeTaken): StudentQuestionAnswer
@@ -56,7 +57,7 @@ class StepPuzzleService
             // 4. Guardamos el intento
             $recordedOptionId = $isCorrect ? $correctOrderIds[0] : $submittedOptionIds[0];
 
-            return StudentQuestionAnswer::query()->create([
+            $answer = StudentQuestionAnswer::query()->create([
                 'student_id' => $student->id,
                 'question_id' => $question->id,
                 'question_option_id' => $recordedOptionId,
@@ -64,6 +65,11 @@ class StepPuzzleService
                 'xp_earned' => $xpEarned,
                 'answered_at' => now(),
             ]);
+            
+            // Sincronizar con la IA / Analytics
+            $this->logSync->syncForQuestion($student, $question, $timeTaken);
+
+            return $answer;
         });
     }
 }

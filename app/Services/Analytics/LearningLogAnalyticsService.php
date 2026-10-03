@@ -60,7 +60,7 @@ class LearningLogAnalyticsService
         ];
     }
 
-    /** @return array{avg_error_rate: float, avg_time_seconds: float, total_sessions: int, total_xp: int} */
+    /** @return array{avg_error_rate: float, avg_time_seconds: float, total_sessions: int, total_xp: int, total_skips: int} */
     private function globalMetrics(): array
     {
         $row = $this->studentLogsQuery()
@@ -68,6 +68,7 @@ class LearningLogAnalyticsService
             ->selectRaw('AVG(total_time_seconds) as avg_time_seconds')
             ->selectRaw('COUNT(*) as total_sessions')
             ->selectRaw('COALESCE(SUM(earned_xp), 0) as total_xp')
+            ->selectRaw('COALESCE(SUM(skipped_attempts), 0) as total_skips')
             ->first();
 
         return [
@@ -75,6 +76,7 @@ class LearningLogAnalyticsService
             'avg_time_seconds' => round((float) ($row->avg_time_seconds ?? 0), 2),
             'total_sessions' => (int) ($row->total_sessions ?? 0),
             'total_xp' => (int) ($row->total_xp ?? 0),
+            'total_skips' => (int) ($row->total_skips ?? 0),
         ];
     }
 

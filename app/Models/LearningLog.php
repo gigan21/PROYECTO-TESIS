@@ -19,6 +19,8 @@ class LearningLog extends Model
         'error_rate_percentage',
         'earned_xp',
         'attempts',
+        'correct_attempts',
+        'skipped_attempts',
         'completed_at',
     ];
 
@@ -30,6 +32,8 @@ class LearningLog extends Model
             'total_time_seconds' => 'integer',
             'earned_xp' => 'integer',
             'attempts' => 'integer',
+            'correct_attempts' => 'integer',
+            'skipped_attempts' => 'integer',
             'completed_at' => 'datetime',
         ];
     }

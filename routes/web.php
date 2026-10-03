@@ -155,9 +155,12 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
     Route::post('/desafio/{code}/preguntas/{question}/responder', [ChallengePlayController::class, 'answer'])
         ->name('estudiante.desafio.responder');
 
+        
     Route::get('/preguntas', [StudentQuizController::class, 'index'])
         ->name('estudiante.preguntas.index');
-
+    Route::post('/preguntas/{question}/skip', [StudentQuizController::class, 'skip'])
+    ->name('estudiante.preguntas.skip');
+    
     Route::post('/preguntas/{question}/responder', [StudentQuizController::class, 'answer'])
         ->name('estudiante.preguntas.responder');
      
@@ -175,6 +178,7 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
 
     Route::get('/estudiante/simulador-proyectiles', [GamificationController::class, 'juegoProyectiles'])->name('estudiante.juego_proyectiles');
 });
+
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')

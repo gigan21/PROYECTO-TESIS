@@ -179,6 +179,7 @@
                      ¡Comprobar Procedimiento! 
                 </button>
             </div>
+               
         </div>
     </div>
 
@@ -191,4 +192,13 @@
     </div>
 </form>
 
+<!-- AHORA SÍ, AFUERA DEL FORMULARIO PRINCIPAL -->
+<div class="mt-4 flex justify-center">
+    <form action="{{ route('estudiante.preguntas.skip', $question->id) }}" method="POST" class="w-full sm:w-auto">
+        @csrf
+        <button type="submit" class="w-full rounded-xl border border-white/10 bg-transparent px-6 py-3.5 text-center text-sm font-bold text-slate-400 transition hover:bg-white/5 hover:text-white">
+            Saltar misión
+        </button>
+    </form>
+</div>
 @vite(['resources/js/blackboard-quiz.js'])
