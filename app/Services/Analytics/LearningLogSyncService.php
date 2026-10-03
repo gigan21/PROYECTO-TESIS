@@ -51,7 +51,7 @@ class LearningLogSyncService
         $log->earned_xp = (int) $stats->total_xp;
         $log->attempts = $totalAttempts;
         
-        // NUEVOS CAMPOS AQUÍ:
+        // NUEVOS CAMPOS AQUÍ SKIPEO:
         $log->correct_attempts = (int) $stats->correct_attempts;
         $log->skipped_attempts = (int) $stats->skipped_attempts;
         
