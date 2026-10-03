@@ -44,9 +44,12 @@ class LoginController extends Controller
     }
 
     private function redirectPathFor(object $user): string
-    {
-        return $user->role === 'docente'
-            ? route('docente.dashboard')
-            : route('estudiante.inicio');
-    }
+{
+    return match ($user->role) {
+        'admin' => route('admin.dashboard'),
+        'docente' => route('docente.dashboard'),
+        'estudiante' => route('estudiante.inicio'),
+        default => route('login'),
+    };
+}
 }

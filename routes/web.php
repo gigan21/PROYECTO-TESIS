@@ -8,6 +8,7 @@ use App\Http\Controllers\Controllers_Docentes\AttendanceHubController;
 use App\Http\Controllers\Controllers_Docentes\AttendanceRecordController;
 use App\Http\Controllers\Controllers_Docentes\AttendanceSessionController;
 use App\Http\Controllers\Controllers_Docentes\ChallengeRoomController;
+use App\Http\Controllers\Controllers_Docentes\DocenteDashboardController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordStatsController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordWordController;
 use App\Http\Controllers\Controllers_Docentes\QuestionController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\Controllers_Estudiantes\GamificationController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentHomeController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentProfileController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentQuizController;
+use App\Http\Controllers\Controllers_Admin\AdminDashboardController;
+use App\Http\Controllers\Controllers_Admin\AdminUserController;
 
 use App\Support\Classroom;
 use Illuminate\Support\Facades\Auth;
@@ -24,12 +27,17 @@ use Illuminate\Support\Facades\Route;
 
 // Redirección inicial según rol
 Route::get('/', function () {
-    if (Auth::check()) {
-        return Auth::user()->role === 'docente'
-            ? redirect()->route('docente.dashboard')
-            : redirect()->route('estudiante.inicio');
+
+    if (!Auth::check()) {
+        return redirect()->route('login');
     }
-    return redirect()->route('login');
+
+    return match (Auth::user()->role) {
+        'admin' => redirect()->route('admin.dashboard'),
+        'docente' => redirect()->route('docente.dashboard'),
+        'estudiante' => redirect()->route('estudiante.inicio'),
+        default => abort(403),
+    };
 });
 
 // Rutas para visitantes NO AUTENTICADOS (Guest)
@@ -53,9 +61,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 
 // Rutas para DOCENTES
 Route::middleware(['auth', 'teacher'])->prefix('docente')->name('docente.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('docente.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DocenteDashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('asistencia')->name('asistencia.')->group(function () {
         Route::get('/', [AttendanceHubController::class, 'index'])->name('index');
@@ -67,6 +73,12 @@ Route::middleware(['auth', 'teacher'])->prefix('docente')->name('docente.')->gro
         Route::get('/paralelo/{classroom}/crear', [AttendanceSessionController::class, 'create'])
             ->where('classroom', Classroom::slugPattern())
             ->name('sesiones.create');
+
+   
+    Route::get('/{question}', [QuestionController::class, 'show'])->name('show');
+    Route::get('/{question}/editar', [QuestionController::class, 'edit'])->name('edit');
+    Route::put('/{question}', [QuestionController::class, 'update'])->name('update');
+    Route::patch('/{question}/estado', [QuestionController::class, 'toggle'])->name('toggle');
 
         Route::post('/paralelo/{classroom}/sesiones', [AttendanceSessionController::class, 'store'])
             ->where('classroom', Classroom::slugPattern())
@@ -82,6 +94,22 @@ Route::middleware(['auth', 'teacher'])->prefix('docente')->name('docente.')->gro
         Route::get('/', [QuestionController::class, 'index'])->name('index');
         Route::get('/crear', [QuestionController::class, 'create'])->name('create');
         Route::post('/', [QuestionController::class, 'store'])->name('store');
+
+        // Página principal de restablecimiento
+    Route::get('/restablecer', [QuestionController::class, 'resetIndex'])
+    ->name('reset.index');
+
+// Restablecer preguntas de un estudiante
+Route::post('/restablecer/estudiante/{student}', [QuestionController::class, 'resetStudent'])
+    ->name('reset.student');
+
+// Restablecer preguntas masivamente
+Route::post('/restablecer/masivo', [QuestionController::class, 'resetBulk'])
+    ->name('reset.bulk');
+
+// Restablecer una pregunta específica
+Route::post('/{question}/restablecer', [QuestionController::class, 'resetSingleQuestion'])
+    ->name('reset.single');
         Route::get('/{question}', [QuestionController::class, 'show'])->name('show');
         Route::get('/{question}/editar', [QuestionController::class, 'edit'])->name('edit');
         Route::put('/{question}', [QuestionController::class, 'update'])->name('update');
@@ -147,3 +175,24 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
 
     Route::get('/estudiante/simulador-proyectiles', [GamificationController::class, 'juegoProyectiles'])->name('estudiante.juego_proyectiles');
 });
+
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/usuarios', [AdminUserController::class, 'index'])
+            ->name('usuarios.index');
+
+        Route::patch('/usuarios/{usuario}/desactivar', [AdminUserController::class, 'desactivar'])
+            ->name('usuarios.desactivar');
+
+        Route::patch('/usuarios/{usuario}/activar', [AdminUserController::class, 'activar'])
+            ->name('usuarios.activar');
+
+        Route::delete('/usuarios/{usuario}', [AdminUserController::class, 'destroy'])
+            ->name('usuarios.destroy');
+    });

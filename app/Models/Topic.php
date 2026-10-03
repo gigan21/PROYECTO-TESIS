@@ -24,4 +24,19 @@ class Topic extends Model
     {
         return $this->hasMany(Question::class);
     }
+
+    public function contents(): HasMany
+    {
+        return $this->hasMany(Content::class);
+    }
+
+    public function learningLogs(): HasMany
+    {
+        return $this->hasMany(LearningLog::class);
+    }
+
+    public function aiRecommendations(): HasMany
+    {
+        return $this->hasMany(AiRecommendation::class);
+    }
 }

@@ -10,6 +10,8 @@ use App\Http\Requests\Questions\StoreQuestionRequest;
 use App\Http\Requests\Questions\UpdateQuestionRequest;
 use App\Models\Question;
 use App\Models\Topic;
+use App\Models\User;
+use App\Models\StudentQuestionAnswer;
 use App\Services\Questions\QuestionOptionsPersistenceService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -31,15 +33,40 @@ class QuestionController extends Controller
 
         $questions = Question::query()
             ->with('topic')
-            ->when($request->filled('topic_id'), fn ($query) => $query->where('topic_id', $request->integer('topic_id')))
-            ->when($request->filled('difficulty'), fn ($query) => $query->where('difficulty', $request->string('difficulty')))
+            ->when(
+                $request->filled('topic_id'),
+                fn ($query) => $query->where(
+                    'topic_id',
+                    $request->integer('topic_id')
+                )
+            )
+            ->when(
+                $request->filled('difficulty'),
+                fn ($query) => $query->where(
+                    'difficulty',
+                    $request->string('difficulty')
+                )
+            )
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
+        /*
+         * Estudiantes disponibles para el restablecimiento
+         * de una pregunta específica.
+         */
+        $students = User::query()
+            ->where('role', 'estudiante')
+            ->with('studentProfile')
+            ->orderBy('name')
+            ->get();
+
         return view('docente.preguntas.index', [
             'questions' => $questions,
-            'topics' => Topic::query()->orderBy('name')->get(),
+            'topics' => Topic::query()
+                ->orderBy('name')
+                ->get(),
+            'students' => $students,
         ]);
     }
 
@@ -47,14 +74,20 @@ class QuestionController extends Controller
     {
         $this->authorize('create', Question::class);
 
-        return view('docente.preguntas.create', $this->formData());
+        return view(
+            'docente.preguntas.create',
+            $this->formData()
+        );
     }
 
     public function store(StoreQuestionRequest $request): RedirectResponse
     {
         $this->authorize('create', Question::class);
 
-        $question = $this->persistQuestion(new Question, $request->validated());
+        $question = $this->persistQuestion(
+            new Question,
+            $request->validated()
+        );
 
         return redirect()
             ->route('docente.preguntas.show', $question)
@@ -65,9 +98,15 @@ class QuestionController extends Controller
     {
         $this->authorize('view', $question);
 
-        $question->load(['topic', 'options']);
+        $question->load([
+            'topic',
+            'options',
+        ]);
 
-        return view('docente.preguntas.show', compact('question'));
+        return view(
+            'docente.preguntas.show',
+            compact('question')
+        );
     }
 
     public function edit(Question $question): View
@@ -76,16 +115,27 @@ class QuestionController extends Controller
 
         $question->load('options');
 
-        return view('docente.preguntas.edit', array_merge($this->formData(), [
-            'question' => $question,
-        ]));
+        return view(
+            'docente.preguntas.edit',
+            array_merge(
+                $this->formData(),
+                [
+                    'question' => $question,
+                ]
+            )
+        );
     }
 
-    public function update(UpdateQuestionRequest $request, Question $question): RedirectResponse
-    {
+    public function update(
+        UpdateQuestionRequest $request,
+        Question $question
+    ): RedirectResponse {
         $this->authorize('update', $question);
 
-        $this->persistQuestion($question, $request->validated());
+        $this->persistQuestion(
+            $question,
+            $request->validated()
+        );
 
         return redirect()
             ->route('docente.preguntas.show', $question)
@@ -96,19 +146,28 @@ class QuestionController extends Controller
     {
         $this->authorize('update', $question);
 
-        $question->update(['is_active' => ! $question->is_active]);
+        $question->update([
+            'is_active' => ! $question->is_active,
+        ]);
 
-        $estado = $question->is_active ? 'activada' : 'desactivada';
+        $estado = $question->is_active
+            ? 'activada'
+            : 'desactivada';
 
-        return back()->with('status', "Pregunta {$estado}.");
+        return back()->with(
+            'status',
+            "Pregunta {$estado}."
+        );
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function persistQuestion(Question $question, array $data): Question
-    {
-        return DB::transaction(function () use ($question, $data) {
+    private function persistQuestion(
+        Question $question,
+        array $data
+    ): Question {
+        return DB::transaction(function () use (
+            $question,
+            $data
+        ) {
             $question->fill([
                 'topic_id' => $data['topic_id'],
                 'difficulty' => $data['difficulty'],
@@ -118,14 +177,21 @@ class QuestionController extends Controller
                 'time_limit_seconds' => $data['time_limit_seconds'] ?? 60,
                 'is_active' => $data['is_active'] ?? true,
             ]);
+
             if (isset($data['image'])) {
-                // Si ya había una foto antes (al editar), la borramos para no ocupar espacio
+
+                // Si ya había una imagen, eliminarla.
                 if ($question->image_path) {
-                    Storage::disk('public')->delete($question->image_path);
+                    Storage::disk('public')->delete(
+                        $question->image_path
+                    );
                 }
-                // Guardamos la nueva en la carpeta 'preguntas'
-                $question->image_path = $data['image']->store('preguntas', 'public');
+
+                // Guardar nueva imagen.
+                $question->image_path = $data['image']
+                    ->store('preguntas', 'public');
             }
+
             $question->save();
 
             $difficultyValue = $data['difficulty'] instanceof QuestionDifficulty
@@ -136,22 +202,196 @@ class QuestionController extends Controller
                 $question,
                 $difficultyValue,
                 $data['options'],
-                isset($data['correct_option']) ? (int) $data['correct_option'] : null
+                isset($data['correct_option'])
+                    ? (int) $data['correct_option']
+                    : null
             );
 
             return $question;
         });
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function formData(): array
     {
         return [
-            'topics' => Topic::query()->orderBy('name')->get(),
+            'topics' => Topic::query()
+                ->orderBy('name')
+                ->get(),
+
             'difficulties' => QuestionDifficulty::cases(),
+
             'types' => QuestionType::cases(),
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESTABLECER PREGUNTAS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Pantalla de restablecimiento general.
+     */
+    public function resetIndex(Request $request): View
+    {
+        $this->authorize(
+            'viewAny',
+            Question::class
+        );
+
+        $classrooms = \App\Models\StudentProfile::query()
+            ->select('classroom')
+            ->whereNotNull('classroom')
+            ->distinct()
+            ->orderBy('classroom')
+            ->pluck('classroom');
+
+        $students = User::query()
+            ->where('role', 'estudiante')
+            ->whereHas(
+                'studentProfile',
+                function ($q) use ($request) {
+                    if ($request->filled('classroom')) {
+                        $q->where(
+                            'classroom',
+                            $request->string('classroom')
+                        );
+                    }
+                }
+            )
+            ->with('studentProfile')
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'docente.preguntas.ResetQuestions.reset',
+            compact(
+                'classrooms',
+                'students'
+            )
+        );
+    }
+
+    /**
+     * Restablece TODAS las preguntas de un estudiante.
+     */
+    public function resetStudent(
+        User $student
+    ): RedirectResponse {
+        $this->authorize(
+            'viewAny',
+            Question::class
+        );
+
+        StudentQuestionAnswer::where(
+            'student_id',
+            $student->id
+        )->delete();
+
+        return back()->with(
+            'status',
+            "Se han restablecido todas las preguntas para el estudiante: {$student->name}."
+        );
+    }
+
+    /**
+     * Restablece las preguntas para un paralelo
+     * o para todos los estudiantes.
+     */
+    public function resetBulk(
+        Request $request
+    ): RedirectResponse {
+        $this->authorize(
+            'viewAny',
+            Question::class
+        );
+
+        $classroom = $request->input('classroom');
+
+        if ($classroom) {
+
+            $studentIds = User::query()
+                ->where('role', 'estudiante')
+                ->whereHas(
+                    'studentProfile',
+                    fn ($q) => $q->where(
+                        'classroom',
+                        $classroom
+                    )
+                )
+                ->pluck('id');
+
+            StudentQuestionAnswer::whereIn(
+                'student_id',
+                $studentIds
+            )->delete();
+
+            $msg = "Se han restablecido las preguntas para todos los estudiantes del paralelo {$classroom}.";
+
+        } else {
+
+            StudentQuestionAnswer::query()->delete();
+
+            $msg = "Se han restablecido las preguntas para TODOS los estudiantes del sistema.";
+        }
+
+        return back()->with(
+            'status',
+            $msg
+        );
+    }
+
+    /**
+     * Restablece UNA pregunta:
+     *
+     * - Si llega student_id:
+     *   solamente para ese estudiante.
+     *
+     * - Si NO llega student_id:
+     *   para todos los estudiantes.
+     */
+    public function resetSingleQuestion(
+        Request $request,
+        Question $question
+    ): RedirectResponse {
+        $this->authorize(
+            'update',
+            $question
+        );
+
+        $studentId = $request->input('student_id');
+
+        if ($studentId) {
+
+            StudentQuestionAnswer::where(
+                'question_id',
+                $question->id
+            )
+                ->where(
+                    'student_id',
+                    $studentId
+                )
+                ->delete();
+
+            $studentName = User::find($studentId)?->name
+                ?? 'el estudiante';
+
+            $msg = "Pregunta restablecida correctamente para {$studentName}.";
+
+        } else {
+
+            StudentQuestionAnswer::where(
+                'question_id',
+                $question->id
+            )->delete();
+
+            $msg = "Pregunta restablecida para todos los estudiantes.";
+        }
+
+        return back()->with(
+            'status',
+            $msg
+        );
     }
 }
