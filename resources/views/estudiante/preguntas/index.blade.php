@@ -177,14 +177,16 @@
                         <!-- BOTONES DE ACCIÓN (Separados del formulario principal) -->
                         <div class="mt-8 flex flex-col items-center gap-4 border-t border-white/5 pt-6 sm:flex-row sm:justify-end">
                             
-                            <!-- Formulario independiente para SALTAR -->
-                            <form action="{{ route('estudiante.preguntas.skip', $question->id) }}" method="POST" class="w-full sm:w-auto">
-                                @csrf
-                                <!-- El atributo formnovalidate le dice al navegador que ignore los required de otros formularios -->
-                                <button type="submit" formnovalidate class="w-full rounded-xl border border-white/10 bg-transparent px-6 py-3.5 text-center text-sm font-bold text-slate-400 transition hover:bg-white/5 hover:text-white">
-                                    Saltar misión
-                                </button>
-                            </form>
+                            <!-- BOTÓN DE SALTAR CON CAPTURA DE TIEMPO -->
+<form method="POST" action="{{ route('estudiante.preguntas.skip', $question) }}" class="w-full sm:w-auto m-0 p-0">
+    @csrf
+    <!-- Aquí se inyectarán los segundos de abandono -->
+    <input type="hidden" name="time_taken" class="skip_time_taken_input" value="0">
+    
+    <button type="submit" class="w-full rounded-xl border border-white/10 bg-transparent px-6 py-3.5 text-center text-sm font-bold text-slate-400 transition hover:bg-white/5 hover:text-white">
+        Saltar misión
+    </button>
+</form>
                                 
                             <!-- Botón que envía el formulario principal -->
                             <button type="submit" form="form-responder" class="w-full rounded-xl bg-amber-500 px-8 py-3.5 text-sm font-bold text-slate-900 transition hover:bg-amber-400 hover:scale-[1.02] active:scale-95 shadow-md shadow-amber-500/20 sm:w-auto">
@@ -218,6 +220,9 @@
             const timeTakenInput = document.getElementById('time_taken_input');
             const bonusBadge = document.getElementById('bonus-badge');
 
+            /* NUEVO: Seleccionamos todos los inputs ocultos de los botones de "Saltar" */
+            const skipTimeInputs = document.querySelectorAll('.skip_time_taken_input');
+
             const countdown = setInterval(() => {
                 timeLeft--;
                 timeTaken++;
@@ -225,6 +230,11 @@
                 if(timeTakenInput) {
                     timeTakenInput.value = timeTaken; 
                 }
+
+                /* NUEVO: Actualizamos el tiempo en TODOS los formularios de "Saltar" */
+                skipTimeInputs.forEach(input => {
+                    input.value = timeTaken;
+                });
 
                 timerDisplay.innerText = timeLeft + 's';
 
@@ -237,7 +247,6 @@
                     bonusBadge.innerText = 'Bono agotado';
                 }
 
-                // COLORES LIMPIOS: Verde -> Naranja -> Rojo
                 if (percentage <= 25) {
                     progressBar.className = "h-full transition-all duration-1000 ease-linear bg-rose-500";
                     timerDisplay.className = "font-epic text-2xl font-bold text-rose-500 animate-pulse";

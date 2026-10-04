@@ -10,6 +10,8 @@ use App\Http\Requests\Questions\SubmitQuestionAnswerRequest;
 use App\Services\Questions\HardQuestionEvaluationService;
 use App\Services\Questions\RecordStudentAnswerService;
 use App\Services\Questions\StepPuzzleService;
+use App\Services\Analytics\LearningLogSyncService;
+use App\Models\StudentQuestionAnswer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -120,6 +122,9 @@ class StudentQuizController extends Controller
     }
     public function skip(Request $request, Question $question, \App\Services\Analytics\LearningLogSyncService $logSync): RedirectResponse
     {
+        // Capturamos el tiempo exacto en segundos que el estudiante dudó antes de saltar
+        $timeTaken = $request->integer('time_taken');
+
         // 1. Guardamos el intento explícitamente como "saltado"
         \App\Models\StudentQuestionAnswer::create([
             'student_id' => $request->user()->id,
@@ -133,10 +138,13 @@ class StudentQuizController extends Controller
         ]);
 
         // 2. Sincronizamos la estadística para el algoritmo C4.5
-        // Enviamos '0' como tiempo tomado, ya que no intentó resolverla
-        $logSync->syncForQuestion($request->user(), $question, 0);
+        // AHORA ENVIAMOS EL TIEMPO REAL ($timeTaken) en lugar de 0
+        $logSync->syncForQuestion($request->user(), $question, $timeTaken);
 
-        // 3. Redirigimos a la siguiente pregunta con un mensaje de feedback
+        // 3. Forzamos a que la próxima pregunta aleatoria no sea esta misma
+        $request->session()->put('last_seen_question_id', $question->id);
+
+        // 4. Redirigimos a la siguiente pregunta con un mensaje de feedback
         return redirect()
             ->route('estudiante.preguntas.index')
             ->with('gamification_status', 'Misión omitida. No has ganado XP, ¡pero inténtalo en la siguiente!');

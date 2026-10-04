@@ -4,9 +4,34 @@
 
 @section('content')
     <div class="space-y-6">
-        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 class="text-2xl font-bold text-indigo-700">Dashboard de Analítica Gamificada</h2>
-            <p class="mt-2 text-slate-600">Monitoreo de rendimiento para el modelo de recomendaciones (C4.5)</p>
+        <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-indigo-700">Dashboard de Analítica Gamificada</h2>
+                <p class="mt-2 text-slate-600">Monitoreo de rendimiento para el modelo de recomendaciones (C4.5)</p>
+            </div>
+            <a href="{{ route('docente.estudiantes') }}"
+               class="inline-flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                Mis Estudiantes
+            </a>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-800">Top 5 — Preguntas críticas</h3>
+            <p class="mt-1 text-xs text-slate-500">Tasa de fallos + saltos ≥ 40% y al menos 3 intentos (toda la plataforma)</p>
+            @if (count($criticalQuestions) === 0)
+                <p class="mt-4 text-sm text-slate-500">Ninguna pregunta supera el umbral con los datos actuales.</p>
+            @else
+                <ul class="mt-4 divide-y divide-slate-100">
+                    @foreach ($criticalQuestions as $item)
+                        <li class="py-3">
+                            <p class="text-sm font-medium text-slate-800">{{ Str::limit($item['question_text'], 120) }}</p>
+                            <p class="mt-1 text-xs text-slate-500">
+                                {{ $item['topic'] }} · {{ $item['failure_rate'] }}% problemas · {{ $item['attempts'] }} intentos
+                            </p>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
 
         @if (($summary['total_sessions'] ?? 0) === 0)

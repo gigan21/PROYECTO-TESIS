@@ -31,9 +31,15 @@
                 class="w-full rounded-xl bg-indigo-600 px-8 py-3.5 text-base font-bold text-white transition-all hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 sm:w-auto">
             Enviar procedimiento
         </button>
-        <a href="{{ route('estudiante.preguntas.index') }}"
-           class="w-full rounded-xl px-6 py-3.5 text-center text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 sm:w-auto">
-            Saltar pregunta
-        </a>
+         <!-- BOTÓN DE SALTAR CON CAPTURA DE TIEMPO -->
+         <form method="POST" action="{{ route('estudiante.preguntas.skip', $question) }}" class="w-full sm:w-auto m-0 p-0">
+            @csrf
+            <!-- Aquí se inyectarán los segundos de abandono -->
+            <input type="hidden" name="time_taken" class="skip_time_taken_input" value="0">
+            
+            <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
+                Saltar misión
+            </button>
+        </form>
     </div>
 </form>

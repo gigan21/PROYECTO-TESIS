@@ -1,15 +1,18 @@
 Listado de rutas de carpetas para el volumen Windows
 El número de serie del volumen es 1AE2-9510
 C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\MODELS
+    AiRecommendation.php
     AttendanceExclusion.php
     AttendanceRecord.php
     AttendanceSession.php
     Badge.php
     ChallengeAnswer.php
     ChallengeRoom.php
+    Content.php
     CrosswordEvent.php
     CrosswordProgress.php
     CrosswordWord.php
+    LearningLog.php
     Question.php
     QuestionOption.php
     StudentProfile.php
@@ -21,37 +24,15 @@ No existe ninguna subcarpeta
 
 Listado de rutas de carpetas para el volumen Windows
 El número de serie del volumen es 1AE2-9510
-C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\HTTP\CONTROLLERS
-¦   Controller.php
-¦   
-+---Auth
-¦       LoginController.php
-¦       RegisterController.php
-¦       ResetPasswordPinController.php
-¦       
-+---Controllers_Docentes
-¦       AttendanceExclusionController.php
-¦       AttendanceHubController.php
-¦       AttendanceRecordController.php
-¦       AttendanceSessionController.php
-¦       ChallengeRoomController.php
-¦       CrosswordStatsController.php
-¦       CrosswordWordController.php
-¦       QuestionController.php
-¦       
-+---Controllers_Estudiantes
-        ChallengePlayController.php
-        CrosswordPlayController.php
-        GamificationController.php
-        StudentHomeController.php
-        StudentProfileController.php
-        StudentQuizController.php
-        
-Listado de rutas de carpetas para el volumen Windows
-El número de serie del volumen es 1AE2-9510
 C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\VIEWS
 ¦   welcome.blade.php
 ¦   
++---admin
+¦   ¦   dashboard.blade.php
+¦   ¦   
+¦   +---usuarios
+¦           index.blade.php
+¦           
 +---auth
 ¦       forgot-pin-email.blade.php
 ¦       forgot-pin-verify.blade.php
@@ -89,6 +70,9 @@ C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\VIEWS
 ¦   ¦       index.blade.php
 ¦   ¦       show.blade.php
 ¦   ¦       
+¦   +---estudiantes
+¦   ¦       index.blade.php
+¦   ¦       
 ¦   +---preguntas
 ¦       ¦   create.blade.php
 ¦       ¦   edit.blade.php
@@ -97,7 +81,11 @@ C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\VIEWS
 ¦       ¦   _form.blade.php
 ¦       ¦   
 ¦       +---partials
-¦               hard-laboratory-steps.blade.php
+¦       ¦       hard-laboratory-steps.blade.php
+¦       ¦       
+¦       +---ResetQuestions
+¦               reset.blade.php
+¦               show.blade.php
 ¦               
 +---emails
 ¦       reset_pin.blade.php
@@ -133,9 +121,44 @@ C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\VIEWS
 ¦           index.blade.php
 ¦           
 +---layouts
+        admin.blade.php
         docente.blade.php
         estudiante.blade.php
         guest.blade.php
+        
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\HTTP\CONTROLLERS
+¦   Controller.php
+¦   
++---Auth
+¦       LoginController.php
+¦       RegisterController.php
+¦       ResetPasswordPinController.php
+¦       
++---Controllers_Admin
+¦       AdminDashboardController.php
+¦       AdminUserController.php
+¦       
++---Controllers_Docentes
+¦       AttendanceExclusionController.php
+¦       AttendanceHubController.php
+¦       AttendanceRecordController.php
+¦       AttendanceSessionController.php
+¦       ChallengeRoomController.php
+¦       CrosswordStatsController.php
+¦       CrosswordWordController.php
+¦       DocenteDashboardController.php
+¦       DocenteStudentsController.php
+¦       QuestionController.php
+¦       
++---Controllers_Estudiantes
+        ChallengePlayController.php
+        CrosswordPlayController.php
+        GamificationController.php
+        StudentHomeController.php
+        StudentProfileController.php
+        StudentQuizController.php
         
 Listado de rutas de carpetas para el volumen Windows
 El número de serie del volumen es 1AE2-9510
@@ -167,6 +190,12 @@ C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\DATABASE\MIGRATIONS
     2026_10_01_000001_add_coins_to_student_profiles_table.php
     2026_10_01_000002_create_badges_table.php
     2026_10_01_000003_create_badge_student_table.php
+    2026_10_02_000001_create_contents_table.php
+    2026_10_02_000002_create_learning_logs_table.php
+    2026_10_02_000003_create_ai_recommendations_table.php
+    2026_10_03_000001_add_difficulty_metrics_to_learning_logs.php
+    2026_10_03_003245_add_is_active_to_users_table.php
+    2026_10_03_031417_add_aciertos_y_saltos_a_tablas.php
     
 No existe ninguna subcarpeta 
 

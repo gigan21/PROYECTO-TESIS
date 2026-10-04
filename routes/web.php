@@ -9,6 +9,7 @@ use App\Http\Controllers\Controllers_Docentes\AttendanceRecordController;
 use App\Http\Controllers\Controllers_Docentes\AttendanceSessionController;
 use App\Http\Controllers\Controllers_Docentes\ChallengeRoomController;
 use App\Http\Controllers\Controllers_Docentes\DocenteDashboardController;
+use App\Http\Controllers\Controllers_Docentes\DocenteStudentsController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordStatsController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordWordController;
 use App\Http\Controllers\Controllers_Docentes\QuestionController;
@@ -62,6 +63,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 // Rutas para DOCENTES
 Route::middleware(['auth', 'teacher'])->prefix('docente')->name('docente.')->group(function () {
     Route::get('/dashboard', [DocenteDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/estudiantes', [DocenteStudentsController::class, 'index'])->name('estudiantes');
 
     Route::prefix('asistencia')->name('asistencia.')->group(function () {
         Route::get('/', [AttendanceHubController::class, 'index'])->name('index');

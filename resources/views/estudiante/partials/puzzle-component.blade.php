@@ -54,13 +54,16 @@
 
             </div>
         </form>
-        <div class="mt-4 flex justify-center">
-            <form action="{{ route('estudiante.preguntas.skip', $question->id) }}" method="POST" class="w-full sm:w-auto">
-                @csrf
-                <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
-                    Saltar misión
-                </button>
-            </form>
-        </div>
+         
+        <!-- BOTÓN DE SALTAR CON CAPTURA DE TIEMPO -->
+        <form method="POST" action="{{ route('estudiante.preguntas.skip', $question) }}" class="w-full sm:w-auto m-0 p-0">
+            @csrf
+            <!-- Aquí se inyectarán los segundos de abandono -->
+            <input type="hidden" name="time_taken" class="skip_time_taken_input" value="0">
+            
+            <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
+                Saltar misión
+            </button>
+        </form>
     </div>
 </div>
