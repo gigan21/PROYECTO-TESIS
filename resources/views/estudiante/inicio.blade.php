@@ -1,4 +1,5 @@
 {{-- resources/views/estudiante/inicio.blade.php --}}
+
 @extends('layouts.estudiante')
 
 @section('title', 'Inicio Estudiante')
@@ -128,17 +129,9 @@
         </div>
 
         {{-- Ranking --}}
-        <div class="flex flex-col items-center rounded-2xl border border-dashed border-white/20 bg-white/5 p-5 text-center backdrop-blur-md">
-            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-400/20 text-slate-400">
-                <img src="{{ asset('images/trofeo.png') }}" alt="Ranking" class="h-8 w-8 object-contain">
-            </div>
-            <h4 class="font-epic mt-2 text-lg font-bold text-slate-300">Ranking</h4>
-            <p class="mt-1 text-sm text-slate-500">Compite con tu gremio. Próximamente.</p>
-            <button type="button" disabled
-                    class="mt-4 w-full cursor-not-allowed rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-500">
-                Bloqueado 🔒
-            </button>
-        </div>
+<div class="flex flex-col items-center rounded-2xl border border-dashed border-white/20 bg-white/5 p-5 text-center backdrop-blur-md">
+    @include('estudiante.partials.ranking')
+</div>
     </aside>
 
 </div>
