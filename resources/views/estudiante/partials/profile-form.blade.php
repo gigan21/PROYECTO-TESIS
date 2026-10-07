@@ -24,38 +24,11 @@
         </div>
 
         <!-- Selector de Avatar -->
-        <div>
-            <label class="mb-3 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Selecciona tu Avatar</label>
-            
-            @php
-                $avatars = [
-                    'avatar1.jpg', 'avatar2.jpg', 'avatar3.jpg', 'avatar4.jpg', 'avatar5.jpg',
-                    'avatar6.jpg', 'avatar7.jpg', 'avatar8.jpg', 'avatar9.jpg', 'avatar10.jpg',
-                ];
-                $currentAvatar = auth()->user()->studentProfile->avatar_name ?? 'avatar1.jpg';
-                if (str_contains($currentAvatar, '.png')) {
-                    $currentAvatar = str_replace('.png', '.jpg', $currentAvatar);
-                }
-            @endphp
-
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-                @foreach ($avatars as $avatar)
-                    <label class="group relative cursor-pointer">
-                        <input type="radio" name="avatar_name" value="{{ $avatar }}" class="peer hidden" {{ $currentAvatar == $avatar ? 'checked' : '' }}>
-                        
-                        <div class="flex flex-col items-center rounded-2xl border-2 border-slate-200 bg-slate-50/50 p-3 transition-all group-hover:border-indigo-300 group-hover:bg-indigo-50/30 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/80 peer-checked:shadow-md dark:border-slate-700 dark:bg-slate-800/50 dark:group-hover:border-indigo-500 dark:peer-checked:border-indigo-500 dark:peer-checked:bg-indigo-900/30">
-                            <img src="{{ asset('images/avatars/' . $avatar) }}" 
-                                 alt="Avatar option" 
-                                 class="h-16 w-16 rounded-xl object-cover shadow-sm transition duration-200 group-hover:scale-105 peer-checked:scale-105">
-                            <span class="mt-2 text-[11px] font-semibold text-slate-500 peer-checked:text-indigo-700 dark:text-slate-400 dark:peer-checked:text-indigo-300">
-                                Elegir
-                            </span>
-                        </div>
-                    </label>
-                @endforeach
-            </div>
-        </div>
-
+         @include('estudiante.partials.items.avatar-selector')
+        <!-- Selector de Banner -->
+        @include('estudiante.partials.items.banner-selector')
+         <!-- Selector de Mascota -->
+         @include('estudiante.partials.items.pet-selector')
         <!-- Paralelo -->
         <div>
             <label for="classroom" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Paralelo (4.º de Secundaria)</label>

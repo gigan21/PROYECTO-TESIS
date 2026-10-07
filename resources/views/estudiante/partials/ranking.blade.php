@@ -74,7 +74,7 @@
     {{-- ============================================================
          CONTENIDO
     ============================================================ --}}
-    <div class="relative min-h-[320px]">
+    <div class="relative max-h-[420px] overflow-hidden">
 
 
         {{-- ========================================================
@@ -243,7 +243,7 @@
                 ================================================== --}}
                 @if($restLocal->isNotEmpty())
 
-                    <div class="space-y-2">
+                <div class="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
 
                         @foreach($restLocal as $student)
 
@@ -464,8 +464,7 @@
                 ================================================== --}}
                 @if($restGlobal->isNotEmpty())
 
-                    <div class="space-y-2">
-
+                <div class="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
                         @foreach($restGlobal as $student)
 
                             <div

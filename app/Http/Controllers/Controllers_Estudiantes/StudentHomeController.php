@@ -10,7 +10,7 @@ use App\Services\Gamification\StudentBadgeService;
 use App\Services\Gamification\StudentProgressService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-
+use App\Support\PetCatalog;
 class StudentHomeController extends Controller
 {
     public function __construct(
@@ -18,7 +18,7 @@ class StudentHomeController extends Controller
         private readonly StudentBadgeService $badges,
         private readonly RankingService $ranking
     ) {}
-
+  
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -51,6 +51,9 @@ class StudentHomeController extends Controller
             'myLocal'       => $myLocal,
             'myGlobal'      => $myGlobal,
             'xpToNext'      => $xpToNext,
+            'activePetId' => PetCatalog::activeFor($user),
         ]);
+        
+
     }
 }

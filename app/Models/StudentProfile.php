@@ -14,6 +14,8 @@ class StudentProfile extends Model
         'avatar_name',
         'xp_points',
         'coins',
+        'banner_id',
+        'active_pet_id',
     ];
 
     protected function casts(): array
@@ -66,4 +68,47 @@ class StudentProfile extends Model
     {
         return 100 - ($this->level_progress);
     }
+
+    /**
+     * Suma monedas al perfil. Preferir CoinService::addCoins().
+     */
+    public function addCoins(int $amount): void
+    {
+        if ($amount <= 0) {
+            return;
+        }
+        $this->increment('coins', $amount);
+    }
+
+    /**
+     * Resta monedas. Devuelve false si no alcanzan.
+     * Preferir CoinService::spendCoins().
+     */
+    public function spendCoins(int $amount): bool
+    {
+        if ($amount <= 0) {
+            return false;
+        }
+        if (($this->coins ?? 0) < $amount) {
+            return false;
+        }
+        $this->decrement('coins', $amount);
+        return true;
+    }
+
+    public function hasCoins(int $amount): bool
+    {
+        return ($this->coins ?? 0) >= $amount;
+    }
+
+    public function coinTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\CoinTransaction::class, 'user_id', 'user_id');
+    }
+        /** Banner equipado (si tiene uno). */
+        public function banner(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+        {
+            return $this->belongsTo(\App\Models\ShopItem::class, 'banner_id');
+        }
+
 }

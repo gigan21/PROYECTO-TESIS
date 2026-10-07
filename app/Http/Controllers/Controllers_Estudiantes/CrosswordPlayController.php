@@ -10,6 +10,7 @@ use App\Http\Requests\Crossword\SaveCrosswordProgressRequest;
 use App\Models\CrosswordWord;
 use App\Services\Crossword\CrosswordProgressService;
 use App\Services\Crossword\CrosswordWordService;
+use App\Services\Gamification\CoinService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +19,8 @@ class CrosswordPlayController extends Controller
 {
     public function __construct(
         private readonly CrosswordWordService $wordService,
-        private readonly CrosswordProgressService $progressService
+        private readonly CrosswordProgressService $progressService,
+        private readonly CoinService $coins,
     ) {}
 
     public function index(): View
@@ -60,29 +62,33 @@ class CrosswordPlayController extends Controller
 
         $payload = match ($action) {
             'word_learned' => $this->progressService->recordWordLearned($user, $word, $level, $timeSpent),
+
             'wrong_attempt' => [
                 'progress' => $this->progressService->toArray(
                     $this->progressService->recordWrongAttempt($user, $word, $level)
                 ),
-                'coins' => $this->progressService->getOrCreate($user)->coins_earned,
+                'coins' => $this->coins->getBalance($user), // ← saldo real
                 'xp' => 0,
                 'coins_delta' => 0,
             ],
+
             'advance_level' => [
                 'progress' => $this->progressService->toArray(
                     $this->progressService->advanceLevel($user, $level)
                 ),
-                'coins' => $this->progressService->getOrCreate($user)->coins_earned,
+                'coins' => $this->coins->getBalance($user), // ← saldo real
                 'xp' => 0,
                 'coins_delta' => 0,
             ],
+
             'reset' => [
                 'progress' => $this->progressService->toArray($this->progressService->reset($user)),
-                'coins' => 0,
+                'coins' => $this->coins->getBalance($user), // ← saldo real (NO se resetea a 0)
                 'xp' => 0,
                 'coins_delta' => 0,
             ],
-            default => ['progress' => [], 'coins' => 0, 'xp' => 0, 'coins_delta' => 0],
+
+            default => ['progress' => [], 'coins' => $this->coins->getBalance($user), 'xp' => 0, 'coins_delta' => 0],
         };
 
         return response()->json($payload);

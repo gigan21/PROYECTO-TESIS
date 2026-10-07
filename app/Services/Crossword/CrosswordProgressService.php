@@ -9,15 +9,17 @@ use App\Models\CrosswordEvent;
 use App\Models\CrosswordProgress;
 use App\Models\CrosswordWord;
 use App\Models\User;
+use App\Services\Gamification\CoinService;
 use App\Services\Gamification\XpAwardService;
 use Illuminate\Support\Facades\DB;
 
 class CrosswordProgressService
 {
-    private const XP_PER_WORD = 5;
+    private const XP_PER_WORD = 2;
 
     public function __construct(
-        private readonly XpAwardService $xpAwards
+        private readonly XpAwardService $xpAwards,
+        private readonly CoinService $coins,
     ) {}
 
     public function getOrCreate(User $user): CrosswordProgress
@@ -35,29 +37,47 @@ class CrosswordProgressService
             $normalized = CrosswordWord::normalizeAnswer($word);
             $wordModel = CrosswordWord::query()->where('answer', $normalized)->first();
 
+            // Si ya la aprendió antes, no damos nada
             if ($progress->hasLearned($normalized)) {
                 return [
                     'progress' => $this->toArray($progress),
-                    'coins' => $progress->coins_earned,
+                    'coins' => $this->coins->getBalance($user),
                     'xp' => 0,
                     'coins_delta' => 0,
                 ];
             }
 
-            $oldCoins = $progress->coins_earned;
+            // 1) Actualizar contadores LOCALES del crucigrama
+            $oldCoinsEarned = $progress->coins_earned;
             $progress->markWordAsLearned($normalized);
             $progress->increment('total_correct_attempts');
             $progress->refresh();
-            $progress->syncCoinsFromAttempts();
-            $this->syncProfileCoins($user, $progress);
-            $coinsDelta = $progress->coins_earned - $oldCoins;
+            $progress->syncCoinsFromAttempts(); // recalcula coins_earned LOCAL (histórico del juego)
+            $coinsDelta = $progress->coins_earned - $oldCoinsEarned;
 
+            // 2) Sumar monedas al PERFIL (fuente de verdad) usando CoinService
+            if ($coinsDelta > 0) {
+                $this->coins->addCoins(
+                    user: $user,
+                    amount: $coinsDelta,
+                    source: 'crossword',
+                    description: "Palabra aprendida: {$normalized}",
+                    metadata: [
+                        'word' => $normalized,
+                        'level' => $level,
+                        'word_id' => $wordModel?->id,
+                    ]
+                );
+            }
+
+            // 3) Dar XP como siempre
             $xpAwarded = self::XP_PER_WORD;
             $this->xpAwards->award($user, $xpAwarded);
 
             $progress->last_played_at = now();
             $progress->save();
 
+            // 4) Registrar evento del crucigrama (igual que antes)
             CrosswordEvent::query()->create([
                 'user_id' => $user->id,
                 'crossword_word_id' => $wordModel?->id,
@@ -72,7 +92,7 @@ class CrosswordProgressService
 
             return [
                 'progress' => $this->toArray($progress->fresh()),
-                'coins' => $progress->coins_earned,
+                'coins' => $this->coins->getBalance($user), // ← saldo REAL del perfil
                 'xp' => $xpAwarded,
                 'coins_delta' => $coinsDelta,
             ];
@@ -112,6 +132,10 @@ class CrosswordProgressService
         return $progress;
     }
 
+    /**
+     * Resetea el progreso del crucigrama.
+     * ⚠️ NO toca las monedas del perfil: ya son del estudiante.
+     */
     public function reset(User $user): CrosswordProgress
     {
         $progress = CrosswordProgress::forUser($user->id);
@@ -121,23 +145,12 @@ class CrosswordProgressService
             'learned_words' => [],
             'total_correct_attempts' => 0,
             'total_wrong_attempts' => 0,
-            'coins_earned' => 0,
+            'coins_earned' => 0, // solo reinicia el contador LOCAL del juego
             'last_played_at' => null,
         ]);
         $progress->save();
-        $this->syncProfileCoins($user, $progress);
 
         return $progress;
-    }
-
-    private function syncProfileCoins(User $user, CrosswordProgress $progress): void
-    {
-        $profile = $user->studentProfile;
-        if ($profile === null) {
-            return;
-        }
-
-        $profile->update(['coins' => $progress->coins_earned]);
     }
 
     /** @return array<string, mixed> */

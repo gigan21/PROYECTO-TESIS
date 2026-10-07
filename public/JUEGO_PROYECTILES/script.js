@@ -4,6 +4,71 @@
 
 (() => {
   "use strict";
+   
+  // --- CONFIGURACIÓN INYECTADA POR LARAVEL ---
+  const GAME_CONFIG = window.__GAME_CONFIG || {
+    csrf: "",
+    rewardUrl: "",
+    statusUrl: "",
+  };
+
+  // --- UTILIDADES DE RECOMPENSAS ---
+  async function requestReward(level, currentScore, finished, isWin) {
+    if (!GAME_CONFIG.rewardUrl) {
+      console.warn("[rewards] rewardUrl no configurada, se omite el fetch.");
+      return null;
+    }
+
+    try {
+      const res = await fetch(GAME_CONFIG.rewardUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-TOKEN": GAME_CONFIG.csrf,
+        },
+        body: JSON.stringify({
+          level: level,
+          score: currentScore,
+          finished: finished,
+          is_win: isWin,
+        }),
+      });
+
+      if (!res.ok) {
+        console.warn("[rewards] respuesta no OK:", res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      showCoinToast(data.coins_delta, data.capped);
+      notifyParent();
+      return data;
+    } catch (err) {
+      console.warn("[rewards] error al pedir recompensa:", err);
+      return null;
+    }
+  }
+
+  function notifyParent() {
+    try {
+      window.parent.postMessage({ type: "projectiles:reward" }, window.location.origin);
+    } catch (e) {
+      // Ignorar si estamos fuera de un iframe
+    }
+  }
+
+  function showCoinToast(delta, capped) {
+    if (!delta || delta <= 0) {
+      if (capped) {
+        showBanner("TOPE DIARIO", "Ya no ganas más monedas hoy en este juego");
+      }
+      return;
+    }
+    showBanner(`+${delta} 🪙`, capped ? "Tope diario alcanzado" : "¡Sigue así!");
+  }
+
 
   // --- CONFIGURACIÓN Y CONSTANTES ---
   const CONFIG = {
@@ -270,6 +335,10 @@
   function gameOver() {
     state = "OVER";
     saveBest();
+
+    // Al perder también pedimos recompensa (por el nivel alcanzado)
+    //requestReward(currentLevel + 1, score, false, false);
+
     $("over-level").textContent = currentLevel + 1;
     $("over-score").textContent = score;
     $("over-best").textContent = bestScore;
@@ -313,11 +382,17 @@
   // Avanza de nivel (o gana) cuando ya no quedan aliens
   function checkLevelClear() {
     if (aliens.length > 0 || state !== "PLAYING") return;
+
     if (currentLevel < CONFIG.levels.length - 1) {
+      // Nivel superado → pedir recompensa y avanzar
+      requestReward(currentLevel + 1, score, false, true);
+
       currentLevel++;
       spawnLevel();
       updateHUD();
     } else {
+      // Último nivel superado → pedir recompensa de victoria
+      requestReward(CONFIG.levels.length, score, true, true);
       winGame();
     }
   }

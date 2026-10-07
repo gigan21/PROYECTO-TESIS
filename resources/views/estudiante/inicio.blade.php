@@ -8,47 +8,80 @@
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 
     <!-- ---------- COLUMNA IZQUIERDA: ESTADO DEL HÉROE ---------- -->
-    <aside class="lg:col-span-1">
-        <div class="flex h-full flex-col items-center rounded-2xl border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-md">
+        <!-- ---------- COLUMNA IZQUIERDA: ESTADO DEL HÉROE ---------- -->
+        <aside class="lg:col-span-1">
+        @php
+            $banner = auth()->user()->studentProfile?->banner;
+            $bannerPath = $banner?->media_path;
+            $bannerExists = $bannerPath && file_exists(public_path($bannerPath));
+        @endphp
 
-            <div class="relative">
-                <img src="{{ asset('images/avatars/' . (auth()->user()->studentProfile->avatar_name ?? 'default_avatar.png')) }}"
-                     alt="Avatar de {{ auth()->user()->name }}"
-                     class="h-36 w-36 rounded-full border-4 border-amber-400 object-cover shadow-[0_0_25px_rgba(251,191,36,0.35)]">
-                <span class="absolute bottom-2 right-2 block h-5 w-5 rounded-full border-4 border-slate-900 {{ auth()->user()->is_active ? 'bg-green-500' : 'bg-gray-400' }}"></span>
-            </div>
+        <div class="relative flex h-full flex-col items-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-md">
 
-            <h2 class="font-epic mt-4 text-2xl font-extrabold text-white">{{ auth()->user()->name }}</h2>
-
-            @if(auth()->user()->is_active)
-                <p class="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-green-400">
-                    <span class="h-2 w-2 rounded-full bg-green-500"></span> En línea
-                </p>
-            @else
-                <p class="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-slate-400">
-                    <span class="h-2 w-2 rounded-full bg-gray-400"></span> Desconectado
-                </p>
+            {{-- 🎨 Banner de fondo --}}
+            {{-- 🎨 Banner de fondo --}}
+            @if($bannerExists)
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-72">
+                    @if($banner?->media_type === 'video')
+                        <video autoplay muted loop playsinline class="h-full w-full object-cover">
+                            <source src="{{ asset($bannerPath) }}">
+                        </video>
+                    @else
+                        <img src="{{ asset($bannerPath) }}"
+                             alt="{{ $banner->name ?? 'Banner' }}"
+                             class="h-full w-full object-cover">
+                    @endif
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/40 to-slate-950/95"></div>
+                </div>
             @endif
 
-            <div class="mt-5 w-full rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4">
-                <p class="text-xs font-semibold text-indigo-300">🏫 Gremio</p>
-                <p class="font-epic mt-1 text-lg font-bold text-indigo-100">
-                    {{ auth()->user()->studentProfile->classroom ?? 'Sin asignar' }}
-                </p>
-                <a href="{{ route('student.profile') }}" class="mt-1 inline-block text-xs font-bold text-amber-300 hover:underline">
-                    Cambiar
-                </a>
-            </div>
+            {{-- Contenido encima del banner --}}
+            <div class="relative z-10 flex w-full flex-col items-center">
 
-            <x-student-progress :progress="$progress" />
+                <div class="relative">
+                    <img src="{{ asset('images/avatars/' . (auth()->user()->studentProfile->avatar_name ?? 'default_avatar.png')) }}"
+                         alt="Avatar de {{ auth()->user()->name }}"
+                         class="h-36 w-36 rounded-full border-4 border-amber-400 object-cover shadow-[0_0_25px_rgba(251,191,36,0.35)]">
+                    <span class="absolute bottom-2 right-2 block h-5 w-5 rounded-full border-4 border-slate-900 {{ auth()->user()->is_active ? 'bg-green-500' : 'bg-gray-400' }}"></span>
+                </div>
 
-            <x-student-badges :badges="$badges" />
-        </div>
+                <h2 class="font-epic mt-4 text-2xl font-extrabold text-white">{{ auth()->user()->name }}</h2>
+
+                @if(auth()->user()->is_active)
+                    <p class="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-green-400">
+                        <span class="h-2 w-2 rounded-full bg-green-500"></span> En línea
+                    </p>
+                @else
+                    <p class="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-slate-400">
+                        <span class="h-2 w-2 rounded-full bg-gray-400"></span> Desconectado
+                    </p>
+                @endif
+
+                <div class="mt-5 w-full rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4">
+                    <p class="text-xs font-semibold text-indigo-300">🏫 Gremio</p>
+                    <p class="font-epic mt-1 text-lg font-bold text-indigo-100">
+                        {{ auth()->user()->studentProfile->classroom ?? 'Sin asignar' }}
+                    </p>
+                    <a href="{{ route('student.profile') }}" class="mt-1 inline-block text-xs font-bold text-amber-300 hover:underline">
+                        Cambiar
+                    </a>
+                </div>
+
+                <x-student-progress :progress="$progress" />
+
+                <x-student-badges :badges="$badges" />
+                <a href="{{ route('estudiante.tienda') }}"
+   class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-500 to-amber-700 px-4 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:brightness-110 hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+    <span class="text-lg">🛒</span>
+    TIENDA
+</a>
+            </div>{{-- cierre del contenedor relative z-10 --}}
+        </div>{{-- cierre de la tarjeta --}}
     </aside>
 
     <!-- ---------- COLUMNA CENTRAL: TABLÓN DE MISIONES ---------- -->
-    <section class="space-y-6 lg:col-span-2">
-
+    <section class="relative space-y-6 pb-24 lg:col-span-2">
+     
         <div class="flex aspect-video items-center justify-center rounded-2xl border border-white/20 bg-black/50 shadow-xl backdrop-blur-md">
             <div class="text-center">
                 <span class="text-5xl">🎬</span>
@@ -92,6 +125,7 @@
                 🎯 Entrar al desafío
             </a>
         </div>
+       
     </section>
 
     <!-- ---------- COLUMNA DERECHA: CAMPO DE ENTRENAMIENTO ---------- -->
@@ -101,7 +135,7 @@
         {{-- Crucigrama --}}
         <div class="flex flex-col items-center rounded-2xl border border-white/20 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md">
             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-violet-400/20 text-violet-400">
-                <img src="{{ asset('images/crucigrama.png') }}" alt="Crucigrama" class="h-8 w-8 object-contain">
+                <img src="{{ asset('images/crucigrama.jpg') }}" alt="Crucigrama" class="h-8 w-8 object-contain">
             </div>
             <h4 class="font-epic mt-2 text-lg font-bold text-violet-300">Crucigrama</h4>
             <p class="mt-1 text-sm text-slate-400">Resuelve el crucigrama y gana XP.</p>
@@ -135,4 +169,6 @@
     </aside>
 
 </div>
+
+@include('estudiante.partials.pets')
 @endsection

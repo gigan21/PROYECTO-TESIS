@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\CoinTransaction;
 
 #[Fillable(['name', 'email', 'password', 'role', 'last_seen', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
@@ -102,5 +103,26 @@ class User extends Authenticatable
             'is_active' => 'boolean',
         ];
     }
-  
+    public function coinTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CoinTransaction::class);
+    }
+
+        /** Inventario de ítems de tienda (registros pivote). */
+        public function studentItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+        {
+            return $this->hasMany(StudentItem::class);
+        }
+    
+        /** Ítems de la tienda que el estudiante ha comprado (acceso directo). */
+        public function shopItems(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+        {
+            return $this->belongsToMany(ShopItem::class, 'student_items')
+                ->withPivot('obtained_at');
+        }
+         /** Mascotas que el usuario ha comprado. */
+    public function pets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserPet::class);
+    }
 }

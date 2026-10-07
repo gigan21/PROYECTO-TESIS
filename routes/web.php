@@ -21,7 +21,10 @@ use App\Http\Controllers\Controllers_Estudiantes\StudentProfileController;
 use App\Http\Controllers\Controllers_Estudiantes\StudentQuizController;
 use App\Http\Controllers\Controllers_Admin\AdminDashboardController;
 use App\Http\Controllers\Controllers_Admin\AdminUserController;
-
+use App\Http\Controllers\Controllers_Estudiantes\ProjectileGameController;
+use App\Http\Controllers\Estudiante\TiendaController;
+use App\Http\Controllers\Controllers_Estudiantes\PetShopController;
+use App\Http\Controllers\Controllers_Estudiantes\ShopController;
 use App\Support\Classroom;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -157,7 +160,22 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
     Route::post('/desafio/{code}/preguntas/{question}/responder', [ChallengePlayController::class, 'answer'])
         ->name('estudiante.desafio.responder');
 
+    // --- RUTA DE TIENDA ---
         
+        Route::get('/tienda', [ShopController::class, 'index'])->name('estudiante.tienda');
+        Route::prefix('tienda')->name('estudiante.tienda.')->group(function () {
+            Route::post('{item}/comprar',     [ShopController::class, 'buy'])->name('buy');
+            Route::post('{item}/equipar',     [ShopController::class, 'equip'])->name('equip');
+            Route::post('{item}/desequipar',  [ShopController::class, 'unequip'])->name('unequip');
+        });
+
+          // --- TIENDA: mascotas ---
+    Route::prefix('tienda/mascotas')->name('estudiante.tienda.pets.')->group(function () {
+        Route::post('{petId}/comprar',    [PetShopController::class, 'buy'])->name('buy');
+        Route::post('{petId}/equipar',    [PetShopController::class, 'equip'])->name('equip');
+        Route::post('desequipar',         [PetShopController::class, 'unequip'])->name('unequip');
+    });
+
     Route::get('/preguntas', [StudentQuizController::class, 'index'])
         ->name('estudiante.preguntas.index');
     Route::post('/preguntas/{question}/skip', [StudentQuizController::class, 'skip'])
@@ -177,9 +195,15 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
     Route::get('/estudiante/simulaciones', function () {
         return view('estudiante.juegos.simulacion');
     })->name('estudiante.simulaciones');
-
+    
     Route::get('/estudiante/simulador-proyectiles', [GamificationController::class, 'juegoProyectiles'])->name('estudiante.juego_proyectiles');
-});
+    // --- API del juego de proyectiles (recompensas con monedas) ---
+    Route::prefix('proyectiles/api')->name('estudiante.proyectiles.api.')->group(function () {
+        Route::post('reward', [ProjectileGameController::class, 'reward'])->name('reward');
+        Route::get('status',  [ProjectileGameController::class, 'status'])->name('status');
+    });
+});  
+    
 
 
 Route::middleware(['auth', 'admin'])
