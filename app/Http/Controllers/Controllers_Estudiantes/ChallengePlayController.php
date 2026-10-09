@@ -69,34 +69,37 @@ class ChallengePlayController extends Controller
     }
 
     public function answer(SubmitChallengeAnswerRequest $request, string $code, Question $question): RedirectResponse
-    {
-        $room = ChallengeRoom::query()
-            ->where('code', strtoupper(trim($code)))
-            ->firstOrFail();
+{
+    $room = ChallengeRoom::query()
+        ->where('code', strtoupper(trim($code)))
+        ->firstOrFail();
 
-        try {
-            $answer = $this->answers->record(
-                $request->user(),
-                $room,
-                $question,
-                $request->option(),
-                (int) $request->validated('response_time_seconds')
-            );
-        } catch (\RuntimeException $exception) {
-            return back()->withErrors(['question_option_id' => $exception->getMessage()]);
-        } catch (AccessDeniedHttpException $exception) {
-            return back()->withErrors(['question_option_id' => $exception->getMessage()]);
-        }
+    $difficulty = $request->difficulty();
 
-        $message = $answer->is_correct
-            ? "¡Correcto! +{$answer->xp_earned} XP ({$answer->response_time_seconds}s)."
-            : "Incorrecto. Tiempo: {$answer->response_time_seconds}s.";
-
-        return redirect()
-            ->route('estudiante.desafio.show', $room->code)
-            ->with('gamification_status', $message);
+    try {
+        $answer = $this->answers->record(
+            $request->user(),
+            $room,
+            $question,
+            $difficulty === 'Fácil'   ? $request->option() : null,
+            $difficulty === 'Medio'   ? $request->orderedOptionIds() : null,
+            $difficulty === 'Difícil' ? $request->stepAnswers() : null,
+            (int) $request->validated('response_time_seconds')
+        );
+    } catch (\RuntimeException $exception) {
+        return back()->withErrors(['answer' => $exception->getMessage()]);
+    } catch (AccessDeniedHttpException $exception) {
+        return back()->withErrors(['answer' => $exception->getMessage()]);
     }
 
+    $message = $answer->is_correct
+        ? "¡Correcto! +{$answer->xp_earned} XP ({$answer->response_time_seconds}s)."
+        : "Incorrecto. Tiempo: {$answer->response_time_seconds}s.";
+
+    return redirect()
+        ->route('estudiante.desafio.show', $room->code)
+        ->with('gamification_status', $message);
+}
     /**
      * @return array{answered: int, correct: int, xp: int}|null
      */

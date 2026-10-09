@@ -1,0 +1,41 @@
+/* ===== Reset y base — tema RPG cyberpunk ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --fondo: #0a0e1a;
+  --panel: #0d1424;
+  --panel-2: #111b30;
+  --cian: #00f0ff;
+  --magenta: #ff00aa;
+  --amarillo: #f5e600;
+  --exito: #00ff88;
+  --error: #ff3355;
+  --texto: #e8f4ff;
+  --texto-suave: #8fa6c4;
+  --glow-cian: 0 0 14px rgba(0, 240, 255, .35);
+  --glow-magenta: 0 0 16px rgba(255, 0, 170, .45);
+  --radio: 6px;
+  --fuente: "Rajdhani", "Orbitron", ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--fuente);
+  background-color: var(--fondo);
+  /* rejilla sutil de HUD */
+  background-image:
+    linear-gradient(rgba(0, 240, 255, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, .04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--texto);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; cursor: pointer; border: none; }
+input { font: inherit; }
+
+.oculto { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

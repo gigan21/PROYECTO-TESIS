@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Lanza la Cura — Neo-San Rafael 2087</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+
+  <!-- ============ PANTALLA DE INICIO ============ -->
+  <div class="overlay" id="pantalla-inicio">
+    <div class="tarjeta-inicio">
+      <h1>💉 LANZA LA CURA 💉</h1>
+      <p class="subtitulo">Neo-San Rafael · 2087</p>
+
+      <div class="instrucciones narrativa-inicio">
+        <p>La ciudad sufre un brote de virus sintético. Los hospitales colapsaron. Eres médico de campo de la resistencia.</p>
+        <p>Tu única paciente es <strong>Lyra</strong>, una niña cuyo bio-monitor se apaga pronto. Necesita la cura antes de que sea tarde.</p>
+        <p>Tienes <strong>4 dosis</strong> de reserva. Debes superar <strong>4 niveles</strong>; cada acierto avanza, cada fallo consume una dosis y repites el nivel.</p>
+      </div>
+
+      <button class="btn-primario" id="btn-comenzar">ACEPTAR MISIÓN</button>
+    </div>
+  </div>
+
+  <!-- ============ PANTALLA DE JUEGO ============ -->
+  <div id="juego" class="oculto">
+
+    <header class="barra-superior" id="barra-superior">
+      <div class="hud-item hud-nivel-wrap">
+        <span class="hud-label">Nivel</span>
+        <span class="hud-valor" id="hud-ronda">NIVEL 1/4</span>
+        <div class="hud-progreso" id="hud-progreso" aria-hidden="true"></div>
+        <span class="hud-nivel-nombre" id="hud-nivel-nombre">Azotea</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Por completar</span>
+        <span class="hud-valor" id="hud-restantes">4</span>
+      </div>
+      <div class="hud-item hud-corazones-wrap">
+        <span class="hud-label">Dosis</span>
+        <div class="hud-corazones" id="hud-corazones" aria-label="Dosis restantes"></div>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Racha</span>
+        <span class="hud-valor hud-racha" id="hud-racha">×0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Puntos</span>
+        <span class="hud-valor" id="hud-puntuacion">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Distancia</span>
+        <span class="hud-valor" id="hud-distancia">0 m</span>
+      </div>
+      <button class="btn-icono" id="btn-reiniciar" title="Reiniciar" aria-label="Reiniciar partida">🔄</button>
+    </header>
+
+    <main class="zona-juego">
+      <div class="contenedor-canvas">
+        <div class="fondo-nivel" id="fondo-nivel"></div>
+        <div class="canvas-overlay canvas-overlay-viento oculto" id="overlay-viento" aria-hidden="true"></div>
+        <div class="canvas-overlay canvas-overlay-gravedad oculto" id="overlay-gravedad" aria-hidden="true"></div>
+        <div class="narrativa-canvas" id="narrativa-canvas" role="status" aria-live="polite"></div>
+        <canvas id="lienzo" width="1000" height="560"></canvas>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+      </div>
+
+      <aside class="panel-control" id="panel-control">
+        <div class="panel-cabecera">
+          <span class="ronda-tag" id="ronda-tag">RONDA 1 / 4</span>
+          <span class="grupo-tag" id="grupo-formula">MRU</span>
+        </div>
+
+        <h2 id="titulo-formula">Fórmula</h2>
+        <p class="formula-texto" id="formula-texto">—</p>
+
+        <h3 class="subtitulo-panel">Datos</h3>
+        <ul class="datos" id="datos-ronda"></ul>
+
+        <div class="bloque-resolucion oculto" id="bloque-resolucion">
+          <h3 class="subtitulo-panel">📖 Resolución</h3>
+          <pre class="resolucion-pasos" id="resolucion-pasos"></pre>
+        </div>
+
+        <label class="etiqueta-respuesta" for="entrada-respuesta" id="etiqueta-respuesta">Calcula</label>
+        <div class="entrada-grupo" id="entrada-grupo">
+          <input type="number" id="entrada-respuesta" placeholder="Tu respuesta" step="0.01" inputmode="decimal" autocomplete="off" />
+          <span class="unidad" id="unidad-respuesta">m/s</span>
+        </div>
+        <p class="estado-calculo" id="estado-calculo"></p>
+        <p class="panel-aviso-nivel oculto" id="panel-aviso-nivel"></p>
+
+        <button type="button" class="btn-secundario oculto" id="btn-trayectoria">Ver trayectoria prevista</button>
+        <button type="button" class="btn-secundario oculto" id="btn-pista">💡 ¿Cómo se resolvía? (-5 pts)</button>
+        <button class="btn-primario btn-lanzar" id="btn-verificar">
+          <span class="btn-label" id="btn-verificar-label">VERIFICAR Y LANZAR</span>
+          <span class="btn-spinner oculto" id="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Ascenso de rango (flash) -->
+  <div class="overlay overlay-flash oculto" id="overlay-ascenso" aria-live="assertive">
+    <p class="ascenso-texto" id="ascenso-texto"></p>
+  </div>
+
+  <!-- ============ PANTALLA FINAL ============ -->
+  <div class="overlay oculto" id="pantalla-final">
+    <div class="tarjeta-final">
+      <h1 id="final-titulo">🏁 MISIÓN TERMINADA</h1>
+      <p id="final-rango" class="final-rango"></p>
+      <p id="final-mensaje" class="final-mensaje"></p>
+      <p id="final-record" class="final-record"></p>
+      <div class="final-estadisticas">
+        <p>Dosis usadas: <strong id="final-intentos">0</strong></p>
+        <p>Puntuación: <strong id="final-puntuacion">0</strong> / 110</p>
+        <p>Mejor racha (sesión): <strong id="final-racha">0</strong></p>
+      </div>
+      <div class="final-formulas">
+        <h3 id="final-formulas-ok-titulo">📖 Fórmulas dominadas</h3>
+        <ul class="lista-formulas" id="final-formulas-ok"></ul>
+        <h3 id="final-formulas-repaso-titulo">📕 Fórmulas para repasar</h3>
+        <ul class="lista-formulas repaso" id="final-formulas-repaso"></ul>
+      </div>
+      <button class="btn-primario" id="btn-jugar-de-nuevo">🔄 JUGAR DE NUEVO</button>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/niveles.js"></script>
+  <script src="js/narrative.js"></script>
+  <script src="js/meta.js"></script>
+  <script src="js/canvas-draw.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

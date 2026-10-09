@@ -1,80 +1,155 @@
-const MAX_HARD_STEPS = 10;
+const MAX_BLOCKS = 20;
 
 function getElements() {
     return {
         opcionesContainer: document.getElementById('opciones-container'),
         hardLabPanel: document.getElementById('hard-lab-panel'),
-        hardStepsList: document.getElementById('hard-steps-list'),
-        hardAddStep: document.getElementById('hard-add-step'),
-        hardStepTemplate: document.getElementById('hard-step-template'),
+        hardBlocksList: document.getElementById('hard-blocks-list'),
+        hardBlocksEmpty: document.getElementById('hard-blocks-empty'),
         classicInputs: () => document.querySelectorAll('#opciones-container .input-opcion'),
         classicRadios: () => document.querySelectorAll('#opciones-container .radio-input'),
         hardFields: () => document.querySelectorAll('#hard-lab-panel .hard-field[data-hard-required]'),
     };
 }
 
-function reindexHardSteps(listEl) {
-    const cards = listEl.querySelectorAll('.hard-step-card');
-    cards.forEach((card, index) => {
-        card.dataset.stepIndex = String(index);
-        const numberEl = card.querySelector('.hard-step-number');
-        if (numberEl) {
-            numberEl.textContent = `Paso ${index + 1}`;
-        }
-
-        const stepLabel = card.querySelector('input[placeholder="Ej: Tiempo de encuentro"]');
-        const answer = card.querySelector('input[placeholder="Ej: 12.5 s"]');
-        const formula = card.querySelector('input[placeholder="Ej: t = d / v"]');
-
-        if (stepLabel) {
-            stepLabel.name = `options[${index}][step_label]`;
-        }
-        if (answer) {
-            answer.name = `options[${index}][option_text]`;
-        }
-        if (formula) {
-            formula.name = `options[${index}][hint_formula]`;
-        }
-
-        const removeBtn = card.querySelector('.hard-remove-step');
-        if (removeBtn) {
-            removeBtn.classList.toggle('hidden', cards.length <= 1);
-        }
-    });
-
-    const addBtn = document.getElementById('hard-add-step');
-    if (addBtn) {
-        addBtn.disabled = cards.length >= MAX_HARD_STEPS;
-        addBtn.classList.toggle('opacity-50', cards.length >= MAX_HARD_STEPS);
+function renderKatexPreview(textarea) {
+    const card = textarea.closest('.hard-block-card');
+    const preview = card?.querySelector('.hard-katex-preview');
+    if (!preview || typeof katex === 'undefined') {
+        return;
+    }
+    const value = textarea.value.trim();
+    if (value === '') {
+        preview.textContent = '—';
+        return;
+    }
+    const previewLatex = value.replace(/\[|\]/g, '');
+    try {
+        katex.render(previewLatex, preview, { throwOnError: false, displayMode: true });
+    } catch {
+        preview.textContent = 'LaTeX no válido';
     }
 }
 
-function bindRemoveButtons(listEl) {
-    listEl.querySelectorAll('.hard-remove-step').forEach((btn) => {
-        btn.replaceWith(btn.cloneNode(true));
+function bindFormulaPreviews(root) {
+    root.querySelectorAll('.hard-latex-input').forEach((textarea) => {
+        renderKatexPreview(textarea);
+        textarea.addEventListener('input', () => renderKatexPreview(textarea));
     });
+}
 
-    listEl.querySelectorAll('.hard-remove-step').forEach((btn) => {
+function bindLatexSnippets(card) {
+    card.querySelectorAll('.hard-latex-snippet').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const card = btn.closest('.hard-step-card');
-            if (!card || listEl.querySelectorAll('.hard-step-card').length <= 1) {
+            const textarea = card.querySelector('.hard-latex-input');
+            if (!textarea) {
                 return;
             }
-            card.remove();
-            reindexHardSteps(listEl);
+            const snippet = btn.getAttribute('data-snippet') || '';
+            const start = textarea.selectionStart ?? textarea.value.length;
+            const end = textarea.selectionEnd ?? textarea.value.length;
+            textarea.value = textarea.value.slice(0, start) + snippet + textarea.value.slice(end);
+            textarea.focus();
+            renderKatexPreview(textarea);
         });
     });
 }
 
-function addHardStepFromTemplate(listEl, templateEl) {
-    if (!templateEl || listEl.querySelectorAll('.hard-step-card').length >= MAX_HARD_STEPS) {
+function reindexBlocks() {
+    const { hardBlocksList, hardBlocksEmpty } = getElements();
+    if (!hardBlocksList) {
         return;
     }
 
-    const clone = templateEl.content.firstElementChild.cloneNode(true);
-    listEl.appendChild(clone);
-    reindexHardSteps(listEl);
-    bindRemoveButtons(listEl);
+    const cards = hardBlocksList.querySelectorAll('.hard-block-card');
+    cards.forEach((card, index) => {
+        card.querySelectorAll('[name^="options["]').forEach((input) => {
+            const name = input.getAttribute('name');
+            if (!name) {
+                return;
+            }
+            input.setAttribute('name', name.replace(/options\[\d+\]/, `options[${index}]`));
+        });
+
+        const sortInput = card.querySelector('.hard-field-sort');
+        if (sortInput) {
+            sortInput.value = String(index);
+        }
+
+        const up = card.querySelector('.hard-move-up');
+        const down = card.querySelector('.hard-move-down');
+        if (up) {
+            up.disabled = index === 0;
+            up.classList.toggle('opacity-40', index === 0);
+        }
+        if (down) {
+            down.disabled = index === cards.length - 1;
+            down.classList.toggle('opacity-40', index === cards.length - 1);
+        }
+    });
+
+    if (hardBlocksEmpty) {
+        hardBlocksEmpty.classList.toggle('hidden', cards.length > 0);
+    }
+
+    document.querySelectorAll('[data-add-block]').forEach((btn) => {
+        btn.disabled = cards.length >= MAX_BLOCKS;
+        btn.classList.toggle('opacity-50', cards.length >= MAX_BLOCKS);
+    });
+}
+
+function bindBlockCard(card) {
+    const removeBtn = card.querySelector('.hard-remove-block');
+    const upBtn = card.querySelector('.hard-move-up');
+    const downBtn = card.querySelector('.hard-move-down');
+
+    removeBtn?.addEventListener('click', () => {
+        const list = card.parentElement;
+        if (!list || list.querySelectorAll('.hard-block-card').length <= 1) {
+            return;
+        }
+        card.remove();
+        reindexBlocks();
+    });
+
+    upBtn?.addEventListener('click', () => {
+        const prev = card.previousElementSibling;
+        if (prev) {
+            card.parentElement?.insertBefore(card, prev);
+            reindexBlocks();
+        }
+    });
+
+    downBtn?.addEventListener('click', () => {
+        const next = card.nextElementSibling;
+        if (next) {
+            card.parentElement?.insertBefore(next, card);
+            reindexBlocks();
+        }
+    });
+
+    bindLatexSnippets(card);
+    bindFormulaPreviews(card);
+}
+
+function addBlockFromTemplate(type) {
+    const { hardBlocksList } = getElements();
+    const template = document.getElementById(`hard-block-template-${type}`);
+    if (!hardBlocksList || !template || hardBlocksList.querySelectorAll('.hard-block-card').length >= MAX_BLOCKS) {
+        return;
+    }
+
+    const html = template.innerHTML.replaceAll('__INDEX__', String(hardBlocksList.querySelectorAll('.hard-block-card').length));
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html.trim();
+    const card = wrapper.firstElementChild;
+    if (!card) {
+        return;
+    }
+
+    hardBlocksList.appendChild(card);
+    bindBlockCard(card);
+    reindexBlocks();
 }
 
 function setClassicFieldsEnabled(enabled) {
@@ -117,13 +192,13 @@ function setHardFieldsEnabled(enabled) {
         }
     });
 
-    hardLabPanel.querySelectorAll('input.hard-field:not([data-hard-required])').forEach((input) => {
+    hardLabPanel.querySelectorAll('input.hard-field:not([data-hard-required]), textarea.hard-field:not([data-hard-required])').forEach((input) => {
         input.disabled = !enabled;
     });
 }
 
 export function activateHardLaboratoryMode() {
-    const { opcionesContainer, hardLabPanel, hardStepsList } = getElements();
+    const { opcionesContainer, hardLabPanel, hardBlocksList } = getElements();
     if (!hardLabPanel || !opcionesContainer) {
         return;
     }
@@ -133,9 +208,9 @@ export function activateHardLaboratoryMode() {
     setClassicFieldsEnabled(false);
     setHardFieldsEnabled(true);
 
-    if (hardStepsList) {
-        bindRemoveButtons(hardStepsList);
-        reindexHardSteps(hardStepsList);
+    if (hardBlocksList) {
+        hardBlocksList.querySelectorAll('.hard-block-card').forEach(bindBlockCard);
+        reindexBlocks();
     }
 }
 
@@ -152,16 +227,18 @@ export function deactivateHardLaboratoryMode() {
 }
 
 function initDocenteHardLaboratory() {
-    const { hardStepsList, hardAddStep, hardStepTemplate } = getElements();
-    if (!hardStepsList || !hardAddStep) {
+    const { hardBlocksList } = getElements();
+    if (!hardBlocksList) {
         return;
     }
 
-    bindRemoveButtons(hardStepsList);
-    reindexHardSteps(hardStepsList);
+    hardBlocksList.querySelectorAll('.hard-block-card').forEach(bindBlockCard);
+    reindexBlocks();
 
-    hardAddStep.addEventListener('click', () => {
-        addHardStepFromTemplate(hardStepsList, hardStepTemplate);
+    document.querySelectorAll('[data-add-block]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            addBlockFromTemplate(btn.getAttribute('data-add-block'));
+        });
     });
 }
 

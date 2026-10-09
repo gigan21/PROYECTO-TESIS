@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CrosswordWordsSeeder::class,
             BadgeSeeder::class,
+            LoreVideoSeeder::class,
             //LearningAnalyticsDemoSeeder::class,
         ]);
     }

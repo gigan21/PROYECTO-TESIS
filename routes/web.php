@@ -196,6 +196,10 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
         return view('estudiante.juegos.simulacion');
     })->name('estudiante.simulaciones');
     
+    // --- RUTA DEL JUEGO DE LANZA LA CURA ---
+    Route::get('/juego/lanza-la-cura', [GamificationController::class, 'juegoLanzaCura'])
+    ->name('estudiante.juego.lanza-la-cura');
+
     Route::get('/estudiante/simulador-proyectiles', [GamificationController::class, 'juegoProyectiles'])->name('estudiante.juego_proyectiles');
     // --- API del juego de proyectiles (recompensas con monedas) ---
     Route::prefix('proyectiles/api')->name('estudiante.proyectiles.api.')->group(function () {

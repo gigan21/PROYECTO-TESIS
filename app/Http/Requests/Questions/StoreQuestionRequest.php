@@ -4,6 +4,8 @@ namespace App\Http\Requests\Questions;
 
 use App\Enums\QuestionDifficulty;
 use App\Enums\QuestionType;
+use App\Models\Question;
+use App\Models\QuestionOption;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -37,10 +39,15 @@ class StoreQuestionRequest extends FormRequest
 
         if ($this->input('difficulty') === QuestionDifficulty::Dificil->value) {
             return array_merge($base, [
-                'options' => ['required', 'array', 'min:1', 'max:10'],
-                'options.*.step_label' => ['required', 'string', 'max:255'],
-                'options.*.option_text' => ['required', 'string', 'max:2000'],
-                'options.*.hint_formula' => ['nullable', 'string', 'max:2000'],
+                'options' => ['required', 'array', 'min:1', 'max:20'],
+                'options.*.block_type' => ['required', Rule::in(['text', 'formula', 'input'])],
+                'options.*.content' => ['nullable', 'string', 'max:5000'],
+                'options.*.unit' => ['nullable', 'string', 'max:50'],
+                'options.*.tolerance' => ['nullable', 'numeric', 'min:0'],
+                 
+                'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
+                'options.*.option_text' => ['nullable', 'string', 'max:255'],
+                'options.*.id' => ['nullable', 'integer', 'exists:question_options,id'],
             ]);
         }
 
@@ -55,14 +62,34 @@ class StoreQuestionRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             if ($this->input('difficulty') === QuestionDifficulty::Dificil->value) {
-                $labels = collect($this->input('options', []))
-                    ->pluck('step_label')
-                    ->map(fn ($label) => trim((string) $label))
-                    ->filter();
+                $options = collect($this->input('options', []));
+                $hasInput = $options->contains(fn ($opt) => ($opt['block_type'] ?? '') === 'input');
 
-                if ($labels->count() > 1 && $labels->unique()->count() !== $labels->count()) {
-                    $validator->errors()->add('options', 'Cada paso debe tener una etiqueta distinta.');
-                }   // borrar para no vALIDAR LAS ETIQUETAS
+                if (! $hasInput) {
+                    $validator->errors()->add('options', 'Debe haber al menos un bloque de tipo input.');
+                }
+
+                foreach ($options as $index => $option) {
+                    $type = $option['block_type'] ?? '';
+                    $content = trim((string) ($option['content'] ?? ''));
+
+                    if (in_array($type, ['text', 'formula', 'input'], true) && $content === '') {
+                        $validator->errors()->add("options.$index.content", 'El contenido es obligatorio para este bloque.');
+                    }
+
+                    if (! empty($option['id'])) {
+                        $question = $this->route('question');
+                        if ($question instanceof Question) {
+                            $belongs = QuestionOption::query()
+                                ->where('id', (int) $option['id'])
+                                ->where('question_id', $question->id)
+                                ->exists();
+                            if (! $belongs) {
+                                $validator->errors()->add("options.$index.id", 'El bloque no pertenece a esta pregunta.');
+                            }
+                        }
+                    }
+                }
 
                 return;
             }

@@ -19,7 +19,6 @@
         <div class="relative flex h-full flex-col items-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-md">
 
             {{-- 🎨 Banner de fondo --}}
-            {{-- 🎨 Banner de fondo --}}
             @if($bannerExists)
                 <div class="pointer-events-none absolute inset-x-0 top-0 h-72">
                     @if($banner?->media_type === 'video')
@@ -82,13 +81,7 @@
     <!-- ---------- COLUMNA CENTRAL: TABLÓN DE MISIONES ---------- -->
     <section class="relative space-y-6 pb-24 lg:col-span-2">
      
-        <div class="flex aspect-video items-center justify-center rounded-2xl border border-white/20 bg-black/50 shadow-xl backdrop-blur-md">
-            <div class="text-center">
-                <span class="text-5xl">🎬</span>
-                <p class="font-epic mt-3 text-lg font-bold text-slate-200">Video Intro / Lore</p>
-                <p class="text-sm text-slate-400">Próximamente</p>
-            </div>
-        </div>
+    @include('estudiante.partials.lore-player', ['videos' => $loreVideos])
 
         <div class="flex flex-col gap-4 rounded-2xl border-2 border-amber-400/40 bg-white/10 p-6 shadow-xl backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-4">
@@ -135,7 +128,7 @@
         {{-- Crucigrama --}}
         <div class="flex flex-col items-center rounded-2xl border border-white/20 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md">
             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-violet-400/20 text-violet-400">
-                <img src="{{ asset('images/crucigrama.jpg') }}" alt="Crucigrama" class="h-8 w-8 object-contain">
+                <img src="{{ asset('images/crucigrama.jpg') }}" alt="Crucigrama" class="h-12 w-12 object-contain">
             </div>
             <h4 class="font-epic mt-2 text-lg font-bold text-violet-300">Crucigrama</h4>
             <p class="mt-1 text-sm text-slate-400">Resuelve el crucigrama y gana XP.</p>
@@ -144,11 +137,22 @@
                 Jugar crucigrama
             </a>
         </div>
-
+        {{-- Lanza la Cura --}}
+        <div class="flex flex-col items-center rounded-2xl border border-white/20 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md">
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-purple-400/20 text-purple-400">
+                <img src="{{ asset('images/lanza-la-cura.png') }}" alt="Lanza la Cura" class="h-29 w-29 object-contain">
+            </div>
+            <h4 class="font-epic mt-2 text-lg font-bold text-purple-300">Lanza la Cura</h4>
+            <p class="mt-1 text-sm text-slate-400">Lanza la cura y gana XP.</p>
+            <a href="{{ route('estudiante.juego.lanza-la-cura') }}"
+               class="mt-4 w-full rounded-lg bg-purple-600 px-4 py-2 text-sm font-bold text-white transition hover:scale-105 hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-300">
+                Jugar lanza la cura
+            </a>
+        </div>
         {{-- Simulador --}}
         <div class="flex flex-col items-center rounded-2xl border border-white/20 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md">
             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-400">
-                <img src="{{ asset('images/cohete.png') }}" alt="Simulador de Proyectiles" class="h-8 w-8 object-contain">
+                <img src="{{ asset('images/cohete.png') }}" alt="Simulador de Proyectiles" class="h-12 w-12 object-contain">
             </div>
             <h4 class="font-epic mt-2 text-lg font-bold text-emerald-300">Simulador de Proyectiles</h4>
             <p class="mt-1 text-sm text-slate-400">Lanza, ajusta el ángulo y apunta al blanco.</p>

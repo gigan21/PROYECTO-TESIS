@@ -2,6 +2,7 @@
 
 namespace App\Services\Questions;
 
+use App\Enums\QuestionBlockType;
 use App\Models\Question;
 use App\Models\QuestionOption;
 
@@ -17,7 +18,7 @@ class QuestionOptionsPersistenceService
         ?int $correctOptionIndex = null
     ): void {
         if ($difficulty === 'Difícil') {
-            $this->syncHardSteps($question, $options);
+            $this->syncHardBlocks($question, $options);
 
             return;
         }
@@ -35,8 +36,11 @@ class QuestionOptionsPersistenceService
         foreach ($options as $index => $option) {
             $payload = [
                 'option_text' => $option['option_text'],
-                'step_label' => null,
-                'hint_formula' => null,
+                'block_type' => null,
+                'content' => null,
+                'unit' => null,
+                'tolerance' => null,
+                'sort_order' => 0,
                 'is_correct' => $correctOptionIndex === $index,
             ];
 
@@ -56,31 +60,50 @@ class QuestionOptionsPersistenceService
     /**
      * @param  array<int, array<string, mixed>>  $options
      */
-    private function syncHardSteps(Question $question, array $options): void
+    private function syncHardBlocks(Question $question, array $options): void
     {
-        $existingOptions = $question->options()->orderBy('id')->get();
-        $stepCount = count($options);
+        $existingById = $question->options()->get()->keyBy('id');
+        $keptIds = [];
 
         foreach ($options as $index => $option) {
+            $blockType = QuestionBlockType::from($option['block_type']);
+            $sortOrder = isset($option['sort_order']) ? (int) $option['sort_order'] : $index;
+
             $payload = [
-                'option_text' => $option['option_text'],
-                'step_label' => $option['step_label'] ?? null,
-                'hint_formula' => $option['hint_formula'] ?? null,
-                'is_correct' => true,
+                'option_text' => (string) ($option['option_text'] ?? ''),
+                'block_type' => $blockType,
+                'content' => $option['content'] ?? null,
+                'unit' => $option['unit'] ?? null,
+                'tolerance' => isset($option['tolerance']) && $option['tolerance'] !== ''
+                    ? (float) $option['tolerance']
+                    : null,
+                'sort_order' => $sortOrder,
+                'is_correct' => $blockType === QuestionBlockType::Input,
             ];
 
-            if (isset($existingOptions[$index])) {
-                $existingOptions[$index]->update($payload);
+            $optionId = isset($option['id']) ? (int) $option['id'] : null;
+            $existing = ($optionId && $existingById->has($optionId))
+                ? $existingById->get($optionId)
+                : null;
+
+            if ($existing !== null && (int) $existing->question_id === (int) $question->id) {
+                $existing->update($payload);
+                $keptIds[] = $existing->id;
 
                 continue;
             }
 
-            QuestionOption::query()->create([
+            $created = QuestionOption::query()->create([
                 'question_id' => $question->id,
                 ...$payload,
             ]);
+            $keptIds[] = $created->id;
         }
 
-        $existingOptions->slice($stepCount)->each(fn (QuestionOption $option) => $option->delete());
+        if ($keptIds !== []) {
+            $question->options()
+                ->whereNotIn('id', $keptIds)
+                ->each(fn (QuestionOption $option) => $option->delete());
+        }
     }
 }

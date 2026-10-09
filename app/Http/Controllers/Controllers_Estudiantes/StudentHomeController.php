@@ -11,6 +11,7 @@ use App\Services\Gamification\StudentProgressService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Support\PetCatalog;
+use App\Models\LoreVideo;
 class StudentHomeController extends Controller
 {
     public function __construct(
@@ -23,7 +24,7 @@ class StudentHomeController extends Controller
     {
         $user = $request->user();
         $profile = $user->studentProfile;
-
+        $loreVideos = LoreVideo::active()->get();
         // Si todavía no tiene perfil, lo creamos
         if (!$profile) {
             $profile = $user->studentProfile()->create([
@@ -52,6 +53,7 @@ class StudentHomeController extends Controller
             'myGlobal'      => $myGlobal,
             'xpToNext'      => $xpToNext,
             'activePetId' => PetCatalog::activeFor($user),
+            'loreVideos' => $loreVideos,
         ]);
         
 

@@ -4,7 +4,7 @@
 @section('title', 'Mi Perfil')
 
 @push('styles')
-<style>
+<style>     
     /* Restyle de los inputs del formulario existente sin tocar el partial */
     .rpg-form label {
         font-family: 'Rajdhani', system-ui, sans-serif;

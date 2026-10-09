@@ -29,4 +29,8 @@ public function juegoProyectiles(): View
 {
     return view('estudiante.juegos.proyectiles');
 }
+public function juegoLanzaCura(): View
+{
+    return view('estudiante.juegos.lanza-la-cura');
+}
 }

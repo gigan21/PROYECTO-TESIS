@@ -3,19 +3,22 @@
     $options = old('options', $isEdit ? $question->options->values()->map(fn ($option) => ['option_text' => $option->option_text])->all() : [['option_text' => ''], ['option_text' => ''], ['option_text' => ''], ['option_text' => '']]);
     $correct = (string) old('correct_option', $isEdit ? (string) $question->options->values()->search(fn ($option) => $option->is_correct) : '0');
 
-    $defaultHardStep = ['step_label' => '', 'option_text' => '', 'hint_formula' => ''];
-    $hardStepsFromQuestion = $isEdit && $question->difficulty->value === 'Difícil'
-        ? $question->options->sortBy('id')->values()->map(fn ($option) => [
-            'step_label' => $option->step_label ?? '',
-            'option_text' => $option->option_text,
-            'hint_formula' => $option->hint_formula ?? '',
+    $hardBlocksFromQuestion = $isEdit && $question->difficulty->value === 'Difícil'
+        ? $question->options->sortBy('sort_order')->values()->map(fn ($option) => [
+            'id' => $option->id,
+            'block_type' => $option->block_type?->value ?? 'text',
+            'content' => $option->content ?? '',
+            'option_text' => $option->option_text ?? '',
+            'unit' => $option->unit,
+            'tolerance' => $option->tolerance,
+            'sort_order' => $option->sort_order ?? 0,
         ])->all()
-        : [$defaultHardStep];
+        : [];
 
-    $hardSteps = old('options', $hardStepsFromQuestion);
-    if (! is_array($hardSteps) || ! isset($hardSteps[0]['step_label'])) {
-        $hardSteps = $hardStepsFromQuestion;
-    }
+    $oldOptions = old('options');
+    $hardBlocks = (is_array($oldOptions) && isset($oldOptions[0]['block_type']))
+        ? $oldOptions
+        : $hardBlocksFromQuestion;
 @endphp
 
 @if ($topics->isEmpty())
@@ -27,7 +30,7 @@
 <form method="POST"
       action="{{ $isEdit ? route('docente.preguntas.update', $question) : route('docente.preguntas.store') }}"
       enctype="multipart/form-data"
-      class="max-w-3xl space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      class="max-w-6xl w-full space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
     @csrf
     @if ($isEdit)
         @method('PUT')
@@ -110,7 +113,7 @@
         @endforeach
     </div>
 
-    @include('docente.preguntas.partials.hard-laboratory-steps', ['hardSteps' => $hardSteps])
+    @include('docente.preguntas.partials.hard-laboratory-steps', ['hardBlocks' => $hardBlocks])
 
     <label class="flex items-center gap-2 text-sm text-slate-700">
         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $isEdit ? $question->is_active : true))>

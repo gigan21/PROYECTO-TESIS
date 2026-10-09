@@ -129,7 +129,7 @@
                     </p>
 
                     <!-- IMAGEN DE APOYO -->
-                    @if ($question->image_path)
+                    @if ($question->image_path && $question->difficulty->value !== 'Difícil')
                         <div class="mb-8 flex justify-center">
                             <img src="{{ asset('storage/' . $question->image_path) }}" alt="Imagen de apoyo" class="max-h-80 w-auto rounded-xl border border-white/10 shadow-lg">
                         </div>
@@ -139,7 +139,7 @@
                     @if ($question->difficulty->value === 'Medio')
                         @include('estudiante.partials.puzzle-component')
                     @elseif ($question->difficulty->value === 'Difícil')
-                        @include('estudiante.partials.blackboard-component')
+                        @include('estudiante.partials.hard-steps-form')
                     @else
 
                         <!-- FORMULARIO OPCIÓN MÚLTIPLE (Fácil) -->
@@ -290,5 +290,7 @@
         });
     });
 </script>
+
+    @stack('scripts')
 </body>
 </html>

@@ -1,0 +1,488 @@
+============================================================
+MODELOS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\MODELS
+    AiRecommendation.php
+    AttendanceExclusion.php
+    AttendanceRecord.php
+    AttendanceSession.php
+    Badge.php
+    ChallengeAnswer.php
+    ChallengeRoom.php
+    CoinTransaction.php
+    Content.php
+    CrosswordEvent.php
+    CrosswordProgress.php
+    CrosswordWord.php
+    LearningLog.php
+    Question.php
+    QuestionOption.php
+    ShopItem.php
+    StudentItem.php
+    StudentProfile.php
+    StudentQuestionAnswer.php
+    Topic.php
+    User.php
+    UserPet.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+CONTROLADORES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\HTTP\CONTROLLERS
+|   Controller.php
+|   
++---Auth
+|       LoginController.php
+|       RegisterController.php
+|       ResetPasswordPinController.php
+|       
++---Controllers_Admin
+|       AdminDashboardController.php
+|       AdminUserController.php
+|       
++---Controllers_Docentes
+|       AttendanceExclusionController.php
+|       AttendanceHubController.php
+|       AttendanceRecordController.php
+|       AttendanceSessionController.php
+|       ChallengeRoomController.php
+|       CrosswordStatsController.php
+|       CrosswordWordController.php
+|       DocenteDashboardController.php
+|       DocenteStudentsController.php
+|       QuestionController.php
+|       
++---Controllers_Estudiantes
+|       ChallengePlayController.php
+|       CrosswordPlayController.php
+|       GamificationController.php
+|       PetShopController.php
+|       ProjectileGameController.php
+|       ShopController.php
+|       StudentHomeController.php
+|       StudentProfileController.php
+|       StudentQuizController.php
+|       
+\---Estudiante
+        TiendaController.php
+        
+
+============================================================
+REQUESTS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\HTTP\REQUESTS
++---Attendance
+|       ExcludeStudentFromAttendanceRequest.php
+|       StoreAttendanceSessionRequest.php
+|       UpdateAttendanceRecordRequest.php
+|       
++---Challenges
+|       StoreChallengeRoomRequest.php
+|       SubmitChallengeAnswerRequest.php
+|       
++---Crossword
+|       SaveCrosswordProgressRequest.php
+|       StoreCrosswordWordRequest.php
+|       UpdateCrosswordWordRequest.php
+|       
+\---Questions
+        StoreQuestionRequest.php
+        SubmitHardQuestionRequest.php
+        SubmitPuzzleAnswerRequest.php
+        SubmitQuestionAnswerRequest.php
+        UpdateQuestionRequest.php
+        
+
+============================================================
+MIDDLEWARE
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\HTTP\MIDDLEWARE
+    IsAdmin.php
+    IsStudent.php
+    IsTeacher.php
+    UpdateLastSeen.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+SERVICES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\SERVICES
++---Analytics
+|       CriticalQuestionsService.php
+|       LearningLogAnalyticsService.php
+|       LearningLogSyncService.php
+|       StudentCardPresenter.php
+|       
++---Attendance
+|       AttendanceRosterService.php
+|       
++---Challenges
+|       ChallengeAccessService.php
+|       ChallengeCodeGenerator.php
+|       RecordChallengeAnswerService.php
+|       
++---Crossword
+|       CrosswordGeneratorService.php
+|       CrosswordProgressService.php
+|       CrosswordWordService.php
+|       README.md
+|       
++---Gamification
+|       CoinService.php
+|       RankingService.php
+|       StudentBadgeService.php
+|       StudentProgressService.php
+|       XpAwardService.php
+|       
++---Questions
+|       HardAnswerNormalizer.php
+|       HardQuestionEvaluationService.php
+|       QuestionCsvImporter.php
+|       QuestionOptionsPersistenceService.php
+|       RecordStudentAnswerService.php
+|       StepPuzzleService.php
+|       StudentQuizService.php
+|       
+\---Shop
+        PetShopService.php
+        ShopService.php
+        
+
+============================================================
+POLICIES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\POLICIES
+    AttendanceSessionPolicy.php
+    ChallengeRoomPolicy.php
+    CrosswordWordPolicy.php
+    QuestionPolicy.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+ENUMS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\ENUMS
+    AttendanceRecordStatus.php
+    AttendanceSessionStatus.php
+    ChallengeRoomStatus.php
+    ContentType.php
+    CrosswordLevel.php
+    LearningGameType.php
+    QuestionDifficulty.php
+    QuestionType.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+PROVIDERS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\PROVIDERS
+    AppServiceProvider.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+MAIL
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\MAIL
+    SendResetPinMail.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+SUPPORT
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\APP\SUPPORT
+    Classroom.php
+    PetCatalog.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+MIGRACIONES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\DATABASE\MIGRATIONS
+    0001_01_01_000000_create_users_table.php
+    0001_01_01_000001_create_cache_table.php
+    0001_01_01_000002_create_jobs_table.php
+    2026_07_01_000001_add_role_to_users_table.php
+    2026_07_01_000002_create_student_profiles_table.php
+    2026_09_01_225828_create_password_reset_pins_table.php
+    2026_09_13_000001_create_attendance_sessions_table.php
+    2026_09_13_000002_create_attendance_records_table.php
+    2026_09_13_000003_create_attendance_exclusions_table.php
+    2026_09_16_000001_create_topics_table.php
+    2026_09_16_000002_create_questions_table.php
+    2026_09_16_000003_create_question_options_table.php
+    2026_09_16_000004_create_student_question_answers_table.php
+    2026_09_18_010122_add_time_limit_to_questions_table.php
+    2026_09_18_021753_drop_unique_from_student_question_answers_table.php
+    2026_09_19_000001_create_challenge_rooms_table.php
+    2026_09_19_000002_create_challenge_room_question_table.php
+    2026_09_19_000003_create_challenge_answers_table.php
+    2026_09_22_205326_add_last_seen_to_users_table.php
+    2026_09_28_000001_add_step_fields_to_question_options_table.php
+    2026_09_28_151817_add_image_path_to_questions_table.php
+    2026_09_30_000001_create_crossword_words_table.php
+    2026_09_30_000002_create_crossword_progress_table.php
+    2026_09_30_000003_create_crossword_events_table.php
+    2026_10_01_000001_add_coins_to_student_profiles_table.php
+    2026_10_01_000002_create_badges_table.php
+    2026_10_01_000003_create_badge_student_table.php
+    2026_10_02_000001_create_contents_table.php
+    2026_10_02_000002_create_learning_logs_table.php
+    2026_10_02_000003_create_ai_recommendations_table.php
+    2026_10_03_000001_add_difficulty_metrics_to_learning_logs.php
+    2026_10_03_003245_add_is_active_to_users_table.php
+    2026_10_03_031417_add_aciertos_y_saltos_a_tablas.php
+    2026_10_05_193327_create_coin_transactions_table.php
+    2026_10_05_213520_create_shop_items_table.php
+    2026_10_05_213842_create_student_items_table.php
+    2026_10_07_012449_add_active_pet_id_to_student_profiles_table.php
+    2026_10_07_013602_create_user_pets_table.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+SEEDERS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\DATABASE\SEEDERS
+    BadgeSeeder.php
+    CrosswordWordsExtraSeeder.php
+    CrosswordWordsSeeder.php
+    DatabaseSeeder.php
+    LearningAnalyticsDemoSeeder.php
+    ShopSeeder.php
+    UserSeeder.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+FACTORIES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\DATABASE\FACTORIES
+    UserFactory.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+CONFIG
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\CONFIG
+    app.php
+    auth.php
+    cache.php
+    database.php
+    filesystems.php
+    logging.php
+    mail.php
+    pets.php
+    projectiles.php
+    queue.php
+    services.php
+    session.php
+    shop.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+ROUTES
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\ROUTES
+    console.php
+    web.php
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+VISTAS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\VIEWS
+|   welcome.blade.php
+|   
++---admin
+|   |   dashboard.blade.php
+|   |   
+|   \---usuarios
+|           index.blade.php
+|           
++---auth
+|       forgot-pin-email.blade.php
+|       forgot-pin-verify.blade.php
+|       login.blade.php
+|       register.blade.php
+|       
++---components
+|       student-badges.blade.php
+|       student-progress.blade.php
+|       
++---docente
+|   |   dashboard.blade.php
+|   |   
+|   +---asistencia
+|   |   |   crear.blade.php
+|   |   |   historial.blade.php
+|   |   |   index.blade.php
+|   |   |   sesion.blade.php
+|   |   |   
+|   |   \---partials
+|   |           fila-estudiante.blade.php
+|   |           resumen.blade.php
+|   |           
+|   +---crucigrama
+|   |       create.blade.php
+|   |       edit.blade.php
+|   |       index.blade.php
+|   |       show.blade.php
+|   |       stats-show.blade.php
+|   |       stats.blade.php
+|   |       _form.blade.php
+|   |       
+|   +---desafios
+|   |       create.blade.php
+|   |       index.blade.php
+|   |       show.blade.php
+|   |       
+|   +---estudiantes
+|   |       index.blade.php
+|   |       
+|   \---preguntas
+|       |   create.blade.php
+|       |   edit.blade.php
+|       |   index.blade.php
+|       |   show.blade.php
+|       |   _form.blade.php
+|       |   
+|       +---partials
+|       |       hard-laboratory-steps.blade.php
+|       |       
+|       \---ResetQuestions
+|               reset.blade.php
+|               show.blade.php
+|               
++---emails
+|       reset_pin.blade.php
+|       
++---estudiante
+|   |   inicio.blade.php
+|   |   perfil.blade.php
+|   |   
+|   +---desafios
+|   |       denied.blade.php
+|   |       enter.blade.php
+|   |       finished.blade.php
+|   |       play.blade.php
+|   |       waiting.blade.php
+|   |       
+|   +---gamification
+|   |       widget-progreso.blade.php
+|   |       
+|   +---juegos
+|   |       crucigrama.blade.php
+|   |       proyectiles.blade.php
+|   |       simulacion.blade.php
+|   |       
+|   +---partials
+|   |   |   blackboard-component.blade.php
+|   |   |   estado-usuario.blade.php
+|   |   |   hard-steps-form.blade.php
+|   |   |   pets.blade.php
+|   |   |   profile-card.blade.php
+|   |   |   profile-form.blade.php
+|   |   |   puzzle-component.blade.php
+|   |   |   ranking.blade.php
+|   |   |   
+|   |   \---items
+|   |           avatar-selector.blade.php
+|   |           banner-selector.blade.php
+|   |           pet-selector.blade.php
+|   |           
+|   +---preguntas
+|   |       index.blade.php
+|   |       
+|   \---tienda
+|           index.blade.php
+|           _avatar-card.blade.php
+|           _banner-card.blade.php
+|           _pet-card.blade.php
+|           
+\---layouts
+        admin.blade.php
+        docente.blade.php
+        estudiante.blade.php
+        guest.blade.php
+        
+
+============================================================
+CSS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\CSS
+    app.css
+    
+No existe ninguna subcarpeta 
+
+
+============================================================
+JS
+============================================================
+Listado de rutas de carpetas para el volumen Windows
+El número de serie del volumen es 1AE2-9510
+C:\LARAGON\WWW\SISTEMAGAMIFICADOPROYECTO\RESOURCES\JS
+    app.js
+    asistencia.js
+    blackboard-quiz.js
+    docente-question-hard-lab.js
+    step-puzzle.js
+    
+No existe ninguna subcarpeta 
+

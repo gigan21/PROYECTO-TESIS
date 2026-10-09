@@ -1,3 +1,8 @@
+@php
+    $formAction = $action ?? route('estudiante.preguntas.responder', $question);
+    $timeField = $timeField ?? 'time_taken';
+@endphp
+
 <!-- CONTENEDOR DEL FONDO ANIMADO (Lluvia) -->
 <div class="relative w-full rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] my-8 bg-slate-900" 
      style="background-image: url('{{ asset('images/lluviadefondo.gif') }}'); background-size: cover; background-position: center;">
@@ -19,10 +24,10 @@
             </p>
         </div>
 
-        <form method="POST" action="{{ route('estudiante.preguntas.responder', $question) }}" id="puzzle-form" class="w-full relative z-20">
+        <form method="POST" action="{{ $formAction }}" id="puzzle-form" class="w-full relative z-20">
             @csrf
             <!-- Input oculto para que Laravel reciba los segundos transcurridos -->
-            <input type="hidden" name="time_taken" id="time_taken_input" value="0">
+            <input type="hidden" name="{{ $timeField }}" id="time_taken_input" value="0">
             
             <!-- CONTENEDOR SORTABLE: Bloques negros estilo 8-bits -->
             <div id="sortable-list" class="space-y-4 my-6 max-w-xl mx-auto px-4">
@@ -56,14 +61,16 @@
         </form>
          
         <!-- BOTÓN DE SALTAR CON CAPTURA DE TIEMPO -->
-        <form method="POST" action="{{ route('estudiante.preguntas.skip', $question) }}" class="w-full sm:w-auto m-0 p-0">
-            @csrf
-            <!-- Aquí se inyectarán los segundos de abandono -->
-            <input type="hidden" name="time_taken" class="skip_time_taken_input" value="0">
-            
-            <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
-                Saltar misión
-            </button>
-        </form>
+        <!-- BOTÓN DE SALTAR CON CAPTURA DE TIEMPO (solo en quiz libre) -->
+        @if (! isset($action))
+            <form method="POST" action="{{ route('estudiante.preguntas.skip', $question) }}" class="w-full sm:w-auto m-0 p-0">
+                @csrf
+                <input type="hidden" name="time_taken" class="skip_time_taken_input" value="0">
+                <button type="submit" class="w-full rounded-xl border border-slate-400 bg-transparent px-6 py-3 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-200">
+                    Saltar misión
+                </button>
+            </form>
+        @endif
+
     </div>
 </div>
