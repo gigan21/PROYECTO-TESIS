@@ -9,10 +9,16 @@
                 <h2 class="text-2xl font-bold text-indigo-700">Dashboard de Analítica Gamificada</h2>
                 <p class="mt-2 text-slate-600">Monitoreo de rendimiento para el modelo de recomendaciones (C4.5)</p>
             </div>
-            <a href="{{ route('docente.estudiantes') }}"
-               class="inline-flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-                Mis Estudiantes
-            </a>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('docente.estudiantes') }}"
+                   class="inline-flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                    Mis Estudiantes
+                </a>
+                <a href="{{ route('docente.juegos.index') }}"
+                   class="inline-flex shrink-0 items-center justify-center rounded-xl border border-indigo-200 bg-white px-5 py-3 text-sm font-bold text-indigo-700 shadow-sm transition hover:bg-indigo-50">
+                    Juegos y telemetría
+                </a>
+            </div>
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

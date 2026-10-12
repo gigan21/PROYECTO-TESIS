@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pedagogy Overlay — Test</title>
+<style>
+  :root {
+    --bg: #05030f; --panel: #0d0a24; --line: #1e1a3a;
+    --accent: #19f2ff; --accent2: #7a4dff; --pink: #ff2bd6; --text: #eaf8ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+         font-family: 'Rajdhani', system-ui, sans-serif; }
+  h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); margin: 0 0 12px;
+       font-size: 18px; letter-spacing: 1px; }
+  .wrap { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 14px; }
+  .row { display: flex; justify-content: space-between; align-items: center;
+         gap: 8px; margin-bottom: 10px; }
+  .row label { font-size: 13px; opacity: .85; }
+  .row input[type=range] { flex: 1; }
+  .val { font-family: 'Orbitron', monospace; color: var(--accent);
+         min-width: 62px; text-align: right; font-size: 12px; }
+  .chk { display: flex; align-items: center; gap: 6px; margin: 6px 0;
+         font-size: 13px; opacity: .9; }
+  button { background: var(--accent2); color: white; border: 0;
+           padding: 10px 16px; border-radius: 8px; font-family: 'Orbitron';
+           font-size: 12px; letter-spacing: 1px; cursor: pointer; width: 100%;
+           margin-top: 8px; }
+  button:hover { background: #9370ff; }
+  canvas { background: #03020a; border: 1px solid var(--line);
+           border-radius: 10px; width: 100%; height: auto; display: block; }
+  .out dt { font-size: 11px; text-transform: uppercase; opacity: .6; }
+  .out dd { font-family: 'Orbitron', monospace; color: var(--accent2);
+            margin: 0 0 8px; font-size: 14px; }
+  .out { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; margin-top: 8px; }
+  hr { border-color: var(--line); margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h1>🎯 Pedagogy Overlay — Test completo</h1>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="row"><label>Ángulo (°)</label><input id="angle" type="range" min="10" max="170" value="110"><span class="val" id="angle-v">110</span></div>
+    <div class="row"><label>Potencia (%)</label><input id="power" type="range" min="15" max="100" value="60"><span class="val" id="power-v">60</span></div>
+    <div class="row"><label>Gravedad</label><input id="gravity" type="range" min="80" max="600" value="320"><span class="val" id="gravity-v">320</span></div>
+
+    <hr>
+
+    <label class="chk"><input type="checkbox" id="opt-trajectory" checked> Trayectoria predicha</label>
+    <label class="chk"><input type="checkbox" id="opt-ticks" checked> Ticks de tiempo</label>
+    <label class="chk"><input type="checkbox" id="opt-v0" checked> Vector v₀ en el cañón</label>
+    <label class="chk"><input type="checkbox" id="opt-components" checked> Vectores vx / vy en la bala</label>
+    <label class="chk"><input type="checkbox" id="opt-livedata" checked> Panel datos en vivo</label>
+
+    <button id="shoot-btn">🔫 DISPARAR</button>
+
+    <dl class="out">
+      <div><dt>v₀</dt><dd id="o-v0">—</dd></div>
+      <div><dt>t vuelo</dt><dd id="o-t">—</dd></div>
+      <div><dt>vx</dt><dd id="o-vx">—</dd></div>
+      <div><dt>vy</dt><dd id="o-vy">—</dd></div>
+      <div><dt>Alcance</dt><dd id="o-r">—</dd></div>
+      <div><dt>Altura máx</dt><dd id="o-h">—</dd></div>
+    </dl>
+  </div>
+
+  <canvas id="cv" width="960" height="600"></canvas>
+</div>
+
+<script src="physics-engine.js"></script>
+<script src="pedagogy-overlay.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), ctx = cv.getContext("2d");
+
+  const PIVOT = { x: 140, y: cv.height - 80 };
+  const CANNON_LENGTH = 54;
+
+  // Bala activa
+  let bullet = null;
+  let lastT = performance.now();
+
+  // --- INPUTS ---
+  function readInputs() {
+    return {
+      angleDeg: parseFloat($("angle").value),
+      power: parseFloat($("power").value),
+      gravity: parseFloat($("gravity").value)
+    };
+  }
+
+  function readFlags() {
+    return {
+      trajectory:  $("opt-trajectory").checked,
+      ticks:       $("opt-ticks").checked,
+      v0:          $("opt-v0").checked,
+      components:  $("opt-components").checked,
+      livedata:    $("opt-livedata").checked
+    };
+  }
+
+  // --- DIBUJO ESTÁTICO ---
+  function drawGrid() {
+    ctx.strokeStyle = "#131028";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= cv.width; x += 50) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
+    }
+    for (let y = 0; y <= cv.height; y += 50) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cv.width, y); ctx.stroke();
+    }
+  }
+
+  function drawPivot() {
+    ctx.fillStyle = "#19f2ff";
+    ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 8;
+    ctx.fillRect(PIVOT.x - 18, PIVOT.y - 6, 36, 12);
+    ctx.shadowBlur = 0;
+  }
+
+  function drawCannon(angleDeg) {
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    ctx.save();
+    ctx.translate(PIVOT.x, PIVOT.y);
+    ctx.rotate(rad);
+    ctx.fillStyle = "#19f2ff"; ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 10;
+    ctx.fillRect(-5, -CANNON_LENGTH, 10, CANNON_LENGTH);
+    ctx.fillStyle = "#7a4dff"; ctx.shadowColor = "#7a4dff";
+    ctx.fillRect(-7, -CANNON_LENGTH - 14, 14, 14);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawBullet(b) {
+    // Estela
+    if (b.trail.length > 1) {
+      PedagogyOverlay.drawTrailWithTicks(ctx, b.trail, { color: "rgba(255,43,214,0.5)" });
+    }
+    // Bala
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#eaf8ff";
+    ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // --- RENDER COMPLETO ---
+  function render() {
+    const inp = readInputs();
+    const flags = readFlags();
+
+    // Estado teórico
+    const shot = PhysicsEngine.computeShot({
+      ...inp,
+      pivotX: PIVOT.x,
+      pivotY: PIVOT.y,
+      cannonLength: CANNON_LENGTH,
+      yFloor: cv.height,
+      steps: 80
+    });
+
+    // Actualizar outputs
+    $("o-v0").textContent = shot.v0.toFixed(1);
+    $("o-t").textContent  = shot.timeOfFlight.toFixed(2) + " s";
+    $("o-vx").textContent = shot.vx.toFixed(1);
+    $("o-vy").textContent = shot.vy.toFixed(1);
+    $("o-r").textContent  = shot.range.toFixed(1);
+    $("o-h").textContent  = shot.maxHeight.toFixed(1);
+
+    // Fondo
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawGrid();
+    drawPivot();
+    drawCannon(inp.angleDeg);
+
+    // Trayectoria predicha
+    if (flags.trajectory) {
+      PedagogyOverlay.drawPredictedTrajectory(ctx, shot.trajectory);
+    }
+
+    // Ticks de tiempo sobre la trayectoria
+    if (flags.ticks && flags.trajectory) {
+      PedagogyOverlay.drawTimeTicks(ctx, shot.trajectory, 0.25);
+    }
+
+    // Vector v₀ en el cañón
+    if (flags.v0) {
+      PedagogyOverlay.drawV0Vector(ctx, PIVOT.x, PIVOT.y, shot.vx, shot.vy, {
+        label: "v₀"
+      });
+    }
+
+    // Bala en vuelo + vectores componentes + panel de datos
+    if (bullet) {
+      drawBullet(bullet);
+
+      if (flags.components) {
+        PedagogyOverlay.drawComponentVectors(ctx, bullet.x, bullet.y, bullet.vx, bullet.vy);
+      }
+
+      if (flags.livedata) {
+        PedagogyOverlay.drawLiveDataBox(ctx, {
+          t: bullet.t, x: bullet.x, y: bullet.y, vx: bullet.vx, vy: bullet.vy
+        }, { x: 20, y: 20 });
+      }
+    }
+  }
+
+  // --- FÍSICA REAL DE LA BALA (para el test) ---
+  function updateBullet(dt) {
+    if (!bullet) return;
+    const g = parseFloat($("gravity").value);
+
+    bullet.x += bullet.vx * dt;
+    bullet.vy += g * dt;
+    bullet.y += bullet.vy * dt;
+    bullet.t += dt;
+
+    bullet.trail.push({ x: bullet.x, y: bullet.y });
+    if (bullet.trail.length > 80) bullet.trail.shift();
+
+    // Fuera de pantalla → borrar
+    if (bullet.y > cv.height + 30 || bullet.x < -30 || bullet.x > cv.width + 30) {
+      bullet = null;
+    }
+  }
+
+  function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = Math.min((now - lastT) / 1000, 0.033);
+    lastT = now;
+
+    updateBullet(dt);
+    render();
+  }
+
+  // --- DISPARO ---
+  function shoot() {
+    const inp = readInputs();
+    const shot = PhysicsEngine.computeShot({
+      ...inp,
+      pivotX: PIVOT.x,
+      pivotY: PIVOT.y,
+      cannonLength: CANNON_LENGTH
+    });
+
+    bullet = {
+      x: shot.startX,
+      y: shot.startY,
+      vx: shot.vx,
+      vy: shot.vy,
+      t: 0,
+      trail: []
+    };
+  }
+
+  // --- BIND ---
+  ["angle","power","gravity"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      $(id + "-v").textContent = $(id).value;
+    });
+  });
+
+  $("shoot-btn").addEventListener("click", shoot);
+
+  // Atajo: barra espaciadora dispara
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") { e.preventDefault(); shoot(); }
+  });
+
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

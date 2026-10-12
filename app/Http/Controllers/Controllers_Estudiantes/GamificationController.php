@@ -33,4 +33,8 @@ public function juegoLanzaCura(): View
 {
     return view('estudiante.juegos.lanza-la-cura');
 }
+public function juegoCarreraGraficas(): View
+{
+    return view('estudiante.juegos.carrera-graficas');
+}
 }

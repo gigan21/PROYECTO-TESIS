@@ -9,6 +9,7 @@ use App\Http\Controllers\Controllers_Docentes\AttendanceRecordController;
 use App\Http\Controllers\Controllers_Docentes\AttendanceSessionController;
 use App\Http\Controllers\Controllers_Docentes\ChallengeRoomController;
 use App\Http\Controllers\Controllers_Docentes\DocenteDashboardController;
+use App\Http\Controllers\Controllers_Docentes\DocenteGamesController;
 use App\Http\Controllers\Controllers_Docentes\DocenteStudentsController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordStatsController;
 use App\Http\Controllers\Controllers_Docentes\CrosswordWordController;
@@ -127,6 +128,26 @@ Route::post('/{question}/restablecer', [QuestionController::class, 'resetSingleQ
     Route::get('crucigrama-stats', [CrosswordStatsController::class, 'index'])->name('crucigrama.stats');
     Route::get('crucigrama-stats/{student}', [CrosswordStatsController::class, 'show'])->name('crucigrama.stats.show');
 
+    Route::prefix('juegos')->name('juegos.')->group(function () {
+        Route::get('/', [DocenteGamesController::class, 'index'])->name('index');
+        Route::prefix('cure')->name('cure.')->group(function () {
+            Route::get('/', [DocenteGamesController::class, 'cureClassrooms'])->name('classrooms');
+            Route::get('/paralelo/{classroom}', [DocenteGamesController::class, 'cureStudents'])
+                ->where('classroom', Classroom::slugPattern())
+                ->name('students');
+            Route::get('/paralelo/{classroom}/estudiante/{user}', [DocenteGamesController::class, 'cureStudentDetail'])
+                ->where('classroom', Classroom::slugPattern())
+                ->name('student');
+        });
+        Route::get('/proyectiles', [DocenteGamesController::class, 'projectilesClassrooms'])->name('projectiles.classrooms');
+        Route::get('/proyectiles/paralelo/{classroom}', [DocenteGamesController::class, 'projectilesStudents'])
+            ->where('classroom', Classroom::slugPattern())
+            ->name('projectiles.students');
+        Route::get('/proyectiles/paralelo/{classroom}/estudiante/{user}', [DocenteGamesController::class, 'projectilesStudentDetail'])
+            ->where('classroom', Classroom::slugPattern())
+            ->name('projectiles.student');
+    });
+
     Route::prefix('desafios')->name('desafios.')->group(function () {
         Route::get('/', [ChallengeRoomController::class, 'index'])->name('index');
         Route::get('/crear', [ChallengeRoomController::class, 'create'])->name('create');
@@ -199,7 +220,14 @@ Route::middleware(['auth', 'student'])->prefix('estudiante')->group(function () 
     // --- RUTA DEL JUEGO DE LANZA LA CURA ---
     Route::get('/juego/lanza-la-cura', [GamificationController::class, 'juegoLanzaCura'])
     ->name('estudiante.juego.lanza-la-cura');
-
+    Route::prefix('juegos/lanza-la-cura/api')->name('estudiante.cure.api.')->group(function () {
+        Route::post('reward', [\App\Http\Controllers\Controllers_Estudiantes\CureGameController::class, 'reward'])->name('reward');
+        Route::get('status', [\App\Http\Controllers\Controllers_Estudiantes\CureGameController::class, 'status'])->name('status');
+    });
+     
+    // --- RUTA DEL JUEGO CARRERA DE GRÁFICAS ---
+Route::get('/juego/carrera-graficas', [GamificationController::class, 'juegoCarreraGraficas'])
+->name('estudiante.juego.carrera-graficas');
     Route::get('/estudiante/simulador-proyectiles', [GamificationController::class, 'juegoProyectiles'])->name('estudiante.juego_proyectiles');
     // --- API del juego de proyectiles (recompensas con monedas) ---
     Route::prefix('proyectiles/api')->name('estudiante.proyectiles.api.')->group(function () {

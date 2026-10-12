@@ -38,7 +38,8 @@
             </div>
         @endif
 
-        @if ($errors->any())
+        {{-- FIX LAYOUT: blindaje contra $errors mal tipado --}}
+        @if (isset($errors) && is_object($errors) && method_exists($errors, 'any') && $errors->any())
             <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <ul class="list-inside list-disc">
                     @foreach ($errors->all() as $error)

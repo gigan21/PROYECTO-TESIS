@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pedagogy Panel — Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="js/pedagogy/pedagogy-panel.css">
+<style>
+  :root { --bg:#05030f; --panel:#0d0a24; --line:#1e1a3a; --accent:#19f2ff; --text:#eaf8ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--text);
+         font-family:'Rajdhani', system-ui, sans-serif; }
+  h1 { font-family:'Orbitron', sans-serif; color:var(--accent); font-size:16px;
+       letter-spacing:1px; margin:0 0 12px; }
+  .controls { background:var(--panel); border:1px solid var(--line);
+              border-radius:10px; padding:14px; max-width:420px; }
+  .row { display:flex; justify-content:space-between; align-items:center;
+         gap:8px; margin-bottom:10px; }
+  .row label { font-size:13px; opacity:.85; min-width:110px; }
+  .row input[type=range] { flex:1; }
+  .val { font-family:'Orbitron', monospace; color:var(--accent);
+         min-width:56px; text-align:right; font-size:12px; }
+  .log { margin-top:12px; background:#0a0820; border:1px solid var(--line);
+         border-radius:8px; padding:10px; font-family:monospace;
+         font-size:11px; color:#7a4dff; max-width:420px;
+         height:120px; overflow:auto; }
+  .log b { color:var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>🎛️ Pedagogy Panel — Test</h1>
+
+<div class="controls">
+  <div class="row"><label>Ángulo θ</label><input id="angle" type="range" min="10" max="170" value="110"><span class="val" id="angle-v">110</span></div>
+  <div class="row"><label>Potencia</label><input id="power" type="range" min="15" max="100" value="60"><span class="val" id="power-v">60</span></div>
+  <p style="font-size:12px; opacity:.6; margin-top:8px;">
+    El panel de la derecha se actualiza con estos valores.<br>
+    La gravedad se controla desde el propio panel (modo laboratorio).
+  </p>
+</div>
+
+<div class="log" id="log"></div>
+
+<!-- Cargamos los módulos -->
+<script src="physics-engine.js"></script>
+<script src="pedagogy-panel.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+
+  // --- Montar panel ---
+  PedagogyPanel.mount(document.body);
+
+  // --- Escuchar eventos del panel ---
+  PedagogyPanel.on("gravity", (g) => {
+    log(`<b>gravity</b> → ${g}`);
+    refresh();
+  });
+  PedagogyPanel.on("flags", (f) => {
+    log(`<b>flags</b> → ${JSON.stringify(f)}`);
+  });
+  PedagogyPanel.on("collapse", (v) => {
+    log(`<b>collapse</b> → ${v}`);
+  });
+
+  // --- Datos simulados del juego ---
+  const PIVOT = { x: 300, y: 500 };
+  const CANNON_LENGTH = 54;
+
+  function refresh() {
+    const inp = {
+      angleDeg: parseFloat($("angle").value),
+      power:    parseFloat($("power").value),
+      gravity:  PedagogyPanel.getGravity()
+    };
+
+    const shot = PhysicsEngine.computeShot({
+      ...inp,
+      pivotX: PIVOT.x,
+      pivotY: PIVOT.y,
+      cannonLength: CANNON_LENGTH,
+      steps: 60
+    });
+
+    PedagogyPanel.updatePanel({
+      angleDeg: shot.angleDeg,
+      v0: shot.v0,
+      vx: shot.vx,
+      vy: shot.vy,
+      timeOfFlight: shot.timeOfFlight,
+      range: shot.range,
+      maxHeight: shot.maxHeight
+    });
+  }
+
+  // Bind sliders
+  ["angle","power"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      $(id + "-v").textContent = $(id).value;
+      refresh();
+    });
+  });
+
+  // Log helper
+  function log(msg) {
+    const el = $("log");
+    el.innerHTML = `${new Date().toLocaleTimeString()} ${msg}<br>` + el.innerHTML;
+  }
+
+  // Inicial
+  refresh();
+  log("<b>panel listo</b>");
+})();
+</script>
+
+</body>
+</html>

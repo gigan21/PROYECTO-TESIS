@@ -55,6 +55,16 @@ class User extends Authenticatable
         return $this->hasMany(LearningLog::class);
     }
 
+    public function projectileSessions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectileGameSession::class);
+    }
+
+    public function cureSessions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CureGameSession::class);
+    }
+
     public function problemQuestionAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(StudentQuestionAnswer::class, 'student_id');

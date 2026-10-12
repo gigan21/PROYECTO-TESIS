@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 🔗 Fuerza HTTPS cuando la app se sirve detrás de ngrok
+    if (str_contains(request()->getHost(), 'ngrok')) {
+        \Illuminate\Support\Facades\URL::forceScheme('https');
+    }
         Gate::policy(AttendanceSession::class, AttendanceSessionPolicy::class);
         Gate::policy(Question::class, QuestionPolicy::class);
         Gate::policy(ChallengeRoom::class, ChallengeRoomPolicy::class);

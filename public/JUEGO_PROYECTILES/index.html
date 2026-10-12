@@ -4,17 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Artillería Orbital</title>
-<!-- Config inyectada por Laravel (viene por query string) -->
-<script>
-    (function () {
-        const params = new URLSearchParams(window.location.search);
-        window.__GAME_CONFIG = {
-            csrf: params.get('csrf') || '',
-            rewardUrl: params.get('reward_url') || '',
-            statusUrl: params.get('status_url') || '',
-        };
-    })();
-</script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -147,6 +137,8 @@
                 <div><dt>Puntos</dt><dd id="over-score">0</dd></div>
                 <div><dt>Récord</dt><dd id="over-best">0</dd></div>
             </dl>
+            <!-- 🔗 TELEMETRY -->
+            <div class="telemetry-summary" id="over-telemetry"></div>
             <button id="retry-btn" class="btn" type="button">Reintentar</button>
         </div>
     </div>
@@ -159,6 +151,8 @@
                 <div><dt>Puntos</dt><dd id="win-score">0</dd></div>
                 <div><dt>Récord</dt><dd id="win-best">0</dd></div>
             </dl>
+            <!-- 🔗 TELEMETRY -->
+            <div class="telemetry-summary" id="win-telemetry"></div>
             <button id="again-btn" class="btn" type="button">Jugar de nuevo</button>
         </div>
     </div>
@@ -166,7 +160,11 @@
     <!-- Estante de imágenes: los GIF deben estar en el DOM para que se animen al dibujarlos en el canvas -->
     <div id="asset-shelf" aria-hidden="true"></div>
 </div>
-
+<script src="js/pedagogy/physics-engine.js"></script>
+<script src="js/pedagogy/pedagogy-overlay.js"></script>
+<script src="js/pedagogy/pedagogy-panel.js"></script>
+<!-- 🔗 TELEMETRY -->
+<script src="js/pedagogy/telemetry.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

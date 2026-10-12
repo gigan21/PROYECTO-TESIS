@@ -133,9 +133,28 @@ button.danger:hover { background: #dc2626; }
   outline: none;
   border-radius: 3px;
   caret-color: var(--accent);
+
+  /* 🔗 FIX MÓVIL — evita que el navegador haga zoom y cierre el teclado */
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 16px; /* ⚠️ 16px o más evita el zoom automático en iOS */
+  touch-action: manipulation;
 }
 
-.cell input:focus { background: var(--cell-focus); }
+/* 🔗 FIX MÓVIL — asegura que la celda activa quede visible y con foco estable */
+.cell input:focus {
+  background: var(--cell-focus);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (max-width: 600px) {
+  .cell input {
+    font-size: 16px; /* Forzado, nunca menos */
+  }
+}
 .cell.correct input { background: var(--cell-correct); }
 .cell.wrong input { background: var(--cell-wrong); }
 

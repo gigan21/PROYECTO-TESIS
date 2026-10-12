@@ -20,7 +20,7 @@ return [
             'description' => 'Tu fiel compañero desde el primer día.',
             'rarity' => 'common',
             'price' => 0,
-            'size' => 110,
+            'size' => 150,
             'speed' => 50,
             'faces' => 'right',
             'animations' => [
@@ -33,7 +33,7 @@ return [
             'description' => 'Independiente, curioso y muy elegante.',
             'rarity' => 'common',
             'price' => 50,
-            'size' => 100,
+            'size' => 120,
             'speed' => 40,
             'faces' => 'right',
             'animations' => ['walking' => 'gato.gif'],
@@ -43,7 +43,7 @@ return [
             'description' => 'Un compañero de granja que pica sin parar.',
             'rarity' => 'rare',
             'price' => 100,
-            'size' => 90,
+            'size' => 100,
             'speed' => 30,
             'faces' => 'right',
             'animations' => [
@@ -57,7 +57,7 @@ return [
             'description' => 'Camina de lado y no le importa.',
             'rarity' => 'rare',
             'price' => 150,
-            'size' => 70,
+            'size' => 80,
             'speed' => 35,
             'faces' => 'right',
             'animations' => [
@@ -70,7 +70,7 @@ return [
             'description' => 'Rápido, astuto y legendario.',
             'rarity' => 'legendary',
             'price' => 250,
-            'size' => 100,
+            'size' => 140,
             'speed' => 90,
             'faces' => 'right',
             'animations' => [

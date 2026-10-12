@@ -4,71 +4,19 @@
 
 (() => {
   "use strict";
-   
-  // --- CONFIGURACIÓN INYECTADA POR LARAVEL ---
-  const GAME_CONFIG = window.__GAME_CONFIG || {
-    csrf: "",
-    rewardUrl: "",
-    statusUrl: "",
-  };
 
-  // --- UTILIDADES DE RECOMPENSAS ---
-  async function requestReward(level, currentScore, finished, isWin) {
-    if (!GAME_CONFIG.rewardUrl) {
-      console.warn("[rewards] rewardUrl no configurada, se omite el fetch.");
-      return null;
+  // --- Parámetros desde Laravel (iframe query string) ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const REWARD_ENDPOINT = urlParams.get("reward_url") || "/estudiante/proyectiles/api/reward";
+  const REWARD_CSRF = urlParams.get("csrf") || "";
+
+  function currentSessionId() {
+    if (window.Telemetry && typeof Telemetry.getSessionId === "function") {
+      return Telemetry.getSessionId();
     }
-
-    try {
-      const res = await fetch(GAME_CONFIG.rewardUrl, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": GAME_CONFIG.csrf,
-        },
-        body: JSON.stringify({
-          level: level,
-          score: currentScore,
-          finished: finished,
-          is_win: isWin,
-        }),
-      });
-
-      if (!res.ok) {
-        console.warn("[rewards] respuesta no OK:", res.status);
-        return null;
-      }
-
-      const data = await res.json();
-      showCoinToast(data.coins_delta, data.capped);
-      notifyParent();
-      return data;
-    } catch (err) {
-      console.warn("[rewards] error al pedir recompensa:", err);
-      return null;
-    }
+    const snap = window.Telemetry ? Telemetry.getSnapshot() : null;
+    return snap?.sessionId ?? null;
   }
-
-  function notifyParent() {
-    try {
-      window.parent.postMessage({ type: "projectiles:reward" }, window.location.origin);
-    } catch (e) {
-      // Ignorar si estamos fuera de un iframe
-    }
-  }
-
-  function showCoinToast(delta, capped) {
-    if (!delta || delta <= 0) {
-      if (capped) {
-        showBanner("TOPE DIARIO", "Ya no ganas más monedas hoy en este juego");
-      }
-      return;
-    }
-    showBanner(`+${delta} 🪙`, capped ? "Tope diario alcanzado" : "¡Sigue así!");
-  }
-
 
   // --- CONFIGURACIÓN Y CONSTANTES ---
   const CONFIG = {
@@ -82,6 +30,14 @@
     debugHitbox: true,    // Tecla H para activar/desactivar
     cannonPivot: 0.20,    // Altura del pivote del cañón (fracción de shipH, hacia arriba)
     cannonLength: 54,     // Largo del cañón en píxeles
+
+    // 🔗 TORRETA: sprite del cañón. El PNG original apunta hacia la DERECHA;
+    // en render() se gira -90° para que quede apuntando "hacia arriba" (ángulo 90°).
+    cannonSpriteW: 105,        // Ancho del sprite en px (largo del cañón: pivote -> boca ≈ cannonLength)
+    cannonSpriteH: 70,         // Alto del sprite en px (mantiene la proporción 612x408)
+    cannonSpritePivotX: 0.42,  // Fracción del ancho del sprite donde está el eje de giro (a lo largo del cañón)
+    cannonSpritePivotY: 0.50,  // Fracción del alto del sprite donde está el eje de giro
+    cannonSpriteOffsetY: 0,    // Ajuste fino (px) perpendicular al cañón si la base no coincide con el pivote
 
     // Hitboxes de la nave: fracciones relativas al centro de la IMAGEN
     // x1/x2 -> fracción de shipW | y1/y2 -> fracción de shipH
@@ -97,7 +53,7 @@
     levels: [
       // aliens: Cantidad | speed: Velocidad lateral | descent: Cuánto bajan al tocar el borde
       { aliens: 8, speed: 5, descent: 15 },
-      { aliens: 24, speed: 65, descent: 25 },
+      { aliens: 20, speed: 40, descent: 25 },
       { aliens: 32, speed: 80, descent: 30 },
       { aliens: 40, speed: 95, descent: 35 },
       { aliens: 50, speed: 110, descent: 40 }
@@ -159,6 +115,11 @@
   const alienImg = new Image();
   alienImg.src = "alien.gif";
   assetShelf.appendChild(alienImg);
+
+  // 🔗 TORRETA: sprite del cañón
+  const torretImg = new Image();
+  torretImg.src = "torretadedisparo.png";
+  assetShelf.appendChild(torretImg);
 
   // --- AJUSTES DEL CANVAS ---
   function resizeCanvas() {
@@ -240,15 +201,17 @@
     });
   }
 
-  function updateAngleUI() {
+    function updateAngleUI() {
     const val = angleSlider.value;
     angleReadout.textContent = val + "°";
     ship.angle = parseInt(val);
     const rotation = val - 90;
     dialNeedle.setAttribute("transform", `rotate(${rotation} 50 54)`);
+    // 🔗 PEDAGOGY
+    refreshPedagogyPanel();
   }
 
-  function updatePowerUI() {
+    function updatePowerUI() {
     const val = powerSlider.value;
     powerReadout.textContent = val + "%";
     ship.power = parseInt(val);
@@ -263,6 +226,8 @@
         c.style.setProperty('--h', hue);
       }
     });
+    // 🔗 PEDAGOGY
+    refreshPedagogyPanel();
   }
 
   function updateHUD() {
@@ -303,6 +268,11 @@
 
   // --- LÓGICA DEL JUEGO ---
   function startGame() {
+    // 🔗 TELEMETRY: nueva sesión (si viene de "Reintentar" tras game over, cuenta un reinicio antes)
+    if (window.Telemetry) {
+      if (state === "OVER") Telemetry.recordRestart();
+      Telemetry.startSession();
+    }
     score = 0;
     currentLevel = 0;
     aliens = [];
@@ -332,17 +302,131 @@
     }
   }
 
+  // 🔗 TELEMETRY: formato mm:ss
+  function formatMMSS(ms) {
+    const total = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(total / 60);
+    const sec = total % 60;
+    return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+  }
+
+  // 🔗 TELEMETRY: pinta el informe de sesión + análisis en el contenedor dado
+  function renderTelemetrySummary(container, data) {
+    if (!container) return;
+    container.textContent = "";
+    if (!data) return;
+
+    const makeRow = (label, value) => {
+      const row = document.createElement("div");
+      row.className = "telem-row";
+      const l = document.createElement("span");
+      l.className = "telem-label";
+      l.textContent = label;
+      const v = document.createElement("span");
+      v.className = "telem-value";
+      v.textContent = value;
+      row.appendChild(l);
+      row.appendChild(v);
+      return row;
+    };
+
+    // Bloque 1: informe
+    const report = document.createElement("div");
+    report.className = "telem-block";
+    const title = document.createElement("h3");
+    title.className = "telem-title";
+    title.textContent = "📊 Informe de sesión";
+    report.appendChild(title);
+
+    const rows = document.createElement("div");
+    rows.className = "telem-rows";
+    rows.appendChild(makeRow("Tiempo total", formatMMSS(data.totalTimeMs)));
+    (data.levels || []).forEach(l => rows.appendChild(makeRow("Nivel " + l.level, formatMMSS(l.timeMs))));
+    rows.appendChild(makeRow("Disparos", data.totalShots));
+    rows.appendChild(makeRow("Aciertos", data.totalHits));
+    rows.appendChild(makeRow("Fallos", data.totalMisses));
+    rows.appendChild(makeRow("Precisión", data.accuracy + "%"));
+    rows.appendChild(makeRow("Ángulo promedio", data.avgAngle + "°"));
+    rows.appendChild(makeRow("Fuerza promedio", data.avgPower + "%"));
+    rows.appendChild(makeRow("Gravedad final", Math.round(data.finalGravity) + " px/s²"));
+    rows.appendChild(makeRow("Ajustes de gravedad", data.gravityChanges));
+    rows.appendChild(makeRow("Reinicios", data.restarts));
+    report.appendChild(rows);
+    container.appendChild(report);
+
+    // Bloque 2: análisis pedagógico
+    const lines = window.Telemetry ? Telemetry.generateAnalysis(data) : [];
+    if (lines.length) {
+      const analysis = document.createElement("div");
+      analysis.className = "telem-block telem-analysis";
+      const t2 = document.createElement("h3");
+      t2.className = "telem-title";
+      t2.textContent = "💡 Análisis";
+      analysis.appendChild(t2);
+      lines.forEach(txt => {
+        const p = document.createElement("p");
+        p.textContent = txt;
+        analysis.appendChild(p);
+      });
+      container.appendChild(analysis);
+    }
+  }
+
+  function requestReward(level, score, finished, isWin, telemetry = null) {
+    const sessionId = (telemetry && telemetry.sessionId) || currentSessionId();
+    if (!sessionId) return;
+
+    const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+    if (REWARD_CSRF) headers["X-CSRF-TOKEN"] = REWARD_CSRF;
+    const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    if (metaCsrf && !headers["X-CSRF-TOKEN"]) headers["X-CSRF-TOKEN"] = metaCsrf.content;
+
+    fetch(REWARD_ENDPOINT, {
+      method: "POST",
+      headers,
+      credentials: "same-origin",
+      body: JSON.stringify({
+        level,
+        score,
+        finished,
+        is_win: isWin,
+        session_id: sessionId,
+        telemetry
+      })
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!data) return;
+        const delta = data.coins_delta ?? 0;
+        if (delta > 0) {
+          showBanner("+" + delta + " MONEDAS", data.capped ? "Tope diario parcial" : "¡Nivel superado!");
+        } else if (data.duplicate) {
+          showBanner("Recompensa ya registrada", "Sin monedas duplicadas");
+        }
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "projectiles:reward", coins_delta: delta }, window.location.origin);
+        }
+      })
+      .catch(() => {});
+  }
+
   function gameOver() {
     state = "OVER";
     saveBest();
-
-    // Al perder también pedimos recompensa (por el nivel alcanzado)
-    //requestReward(currentLevel + 1, score, false, false);
-
     $("over-level").textContent = currentLevel + 1;
     $("over-score").textContent = score;
     $("over-best").textContent = bestScore;
     showScreen(screenOver);
+
+    // 🔗 TELEMETRY: cerrar sesión, pintar informe y enviarlo con la recompensa
+    let telemetry = window.Telemetry
+      ? Telemetry.endSession({ result: "lose", score, levelReached: currentLevel + 1 })
+      : null;
+    if (telemetry && window.Telemetry) {
+      telemetry.analysis = Telemetry.generateAnalysis(telemetry);
+    }
+    renderTelemetrySummary($("over-telemetry"), telemetry);
+    requestReward(currentLevel + 1, score, true, false, telemetry);
   }
 
   function winGame() {
@@ -351,48 +435,65 @@
     $("win-score").textContent = score;
     $("win-best").textContent = bestScore;
     showScreen(screenWin);
+
+    // 🔗 TELEMETRY: cerrar sesión, pintar informe y enviarlo con la recompensa
+    let telemetry = window.Telemetry
+      ? Telemetry.endSession({ result: "win", score, levelReached: currentLevel + 1 })
+      : null;
+    if (telemetry && window.Telemetry) {
+      telemetry.analysis = Telemetry.generateAnalysis(telemetry);
+    }
+    renderTelemetrySummary($("win-telemetry"), telemetry);
+    requestReward(currentLevel + 1, score, true, true, telemetry);
   }
 
   function spawnLevel() {
-    aliens = [];
-    const lvl = CONFIG.levels[currentLevel];
-    const cols = Math.ceil(Math.sqrt(lvl.aliens * 1.5));
-    const rows = Math.ceil(lvl.aliens / cols);
-    const spacingX = 80;
-    const spacingY = 60;
-    const startX = (canvas.width - (cols - 1) * spacingX) / 2;
+  aliens = [];
+  const lvl = CONFIG.levels[currentLevel];
+  const cols = Math.ceil(Math.sqrt(lvl.aliens * 1.5));
+  const rows = Math.ceil(lvl.aliens / cols);
+  const spacingX = 80;
+  const spacingY = 55;               // un poco más juntos verticalmente
+  const startX = (canvas.width - (cols - 1) * spacingX) / 2;
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (aliens.length >= lvl.aliens) break;
-        aliens.push({
-          x: startX + c * spacingX,
-          y: 70 + r * spacingY,
-          w: CONFIG.alienW,
-          h: CONFIG.alienH,
-          vx: (Math.random() - 0.5) * lvl.speed * 1.5,
-          vy: Math.random() * 30 + 15,
-          erraticTimer: Math.random() * 2
-        });
-      }
+  // Empiezan más arriba (casi saliendo de la pantalla)
+  const startY = 40;                 // ← cambia este valor si quieres más arriba o más abajo
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (aliens.length >= lvl.aliens) break;
+      aliens.push({
+        x: startX + c * spacingX,
+        y: startY + r * spacingY,    // ← ahora usan startY
+        w: CONFIG.alienW,
+        h: CONFIG.alienH,
+        vx: (Math.random() - 0.5) * lvl.speed * 1.5,
+        vy: Math.random() * 30 + 15,
+        erraticTimer: Math.random() * 2
+      });
     }
-    showBanner(`NIVEL ${currentLevel + 1}`, `${lvl.aliens} naves detectadas`);
   }
+  showBanner(`NIVEL ${currentLevel + 1}`, `${lvl.aliens} naves detectadas`);
+  // 🔗 TELEMETRY: inicio de nivel
+  if (window.Telemetry) Telemetry.recordLevelStart(currentLevel + 1);
+}
 
   // Avanza de nivel (o gana) cuando ya no quedan aliens
   function checkLevelClear() {
     if (aliens.length > 0 || state !== "PLAYING") return;
 
-    if (currentLevel < CONFIG.levels.length - 1) {
-      // Nivel superado → pedir recompensa y avanzar
-      requestReward(currentLevel + 1, score, false, true);
+    const clearedLevel = currentLevel + 1;
+    const lastIndex = CONFIG.levels.length - 1;
 
+    if (window.Telemetry) Telemetry.recordLevelEnd(clearedLevel);
+
+    if (currentLevel < lastIndex) {
+      const partialTelemetry = window.Telemetry ? Telemetry.getSnapshot() : null;
+      requestReward(clearedLevel, score, false, true, partialTelemetry);
       currentLevel++;
       spawnLevel();
       updateHUD();
     } else {
-      // Último nivel superado → pedir recompensa de victoria
-      requestReward(CONFIG.levels.length, score, true, true);
       winGame();
     }
   }
@@ -416,7 +517,12 @@
     const startX = pivotX + Math.sin(angleRad) * CONFIG.cannonLength;
     const startY = pivotY - Math.cos(angleRad) * CONFIG.cannonLength;
 
-    bullets.push({ x: startX, y: startY, vx, vy, trail: [], time: 0 });
+        bullets.push({ x: startX, y: startY, vx, vy, trail: [], time: 0, t: 0 });
+
+    // 🔗 TELEMETRY: guardar ángulo y fuerza del disparo en la bala (los sliders pueden cambiar mientras vuela)
+    const firedBullet = bullets[bullets.length - 1];
+    firedBullet.shotAngle = ship.angle;
+    firedBullet.shotPower = ship.power;
   }
 
   function spawnParticles(x, y, color) {
@@ -465,14 +571,17 @@
       const b = bullets[i];
       b.time += dt;
 
-      b.x += b.vx * dt;
-      b.vy += CONFIG.gravity * dt;
+            b.x += b.vx * dt;
+      b.vy += getEffectiveGravity() * dt;
       b.y += b.vy * dt;
+      b.t += dt;
 
       b.trail.push({ x: b.x, y: b.y });
       if (b.trail.length > CONFIG.trailLen) b.trail.shift();
 
       if (b.y > canvas.height || b.x < -20 || b.x > canvas.width + 20) {
+        // 🔗 TELEMETRY: disparo fallido (salió de pantalla)
+        if (window.Telemetry) Telemetry.recordShot({ angle: b.shotAngle, power: b.shotPower, hit: false });
         bullets.splice(i, 1);
         continue;
       }
@@ -481,6 +590,8 @@
         const a = aliens[j];
         if (Math.hypot(b.x - a.x, b.y - a.y) < 35) {
           spawnParticles(a.x, a.y, "#ff2bd6");
+          // 🔗 TELEMETRY: disparo con impacto
+          if (window.Telemetry) Telemetry.recordShot({ angle: b.shotAngle, power: b.shotPower, hit: true });
           aliens.splice(j, 1);
           bullets.splice(i, 1);
           score += (currentLevel + 1) * 100;
@@ -545,11 +656,24 @@
     ctx.translate(0, -CONFIG.shipH * CONFIG.cannonPivot);
     ctx.rotate((ship.angle - 90) * Math.PI / 180);
 
-    ctx.fillStyle = "#19f2ff"; ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 10;
-    ctx.fillRect(-5, -45, 10, 45);
-    ctx.fillStyle = "#7a4dff"; ctx.shadowColor = "#7a4dff";
-    ctx.fillRect(-7, -54, 14, 14);
-    ctx.shadowBlur = 0;
+    // 🔗 TORRETA: sprite en lugar de los dos fillRect (con fallback si la imagen no cargó)
+    if (torretImg.complete && torretImg.naturalHeight !== 0) {
+      ctx.rotate(-Math.PI / 2);          // el PNG apunta a la derecha; lo giramos para que apunte "arriba"
+      if (ship.angle < 90) ctx.scale(1, -1); // al apuntar a la izquierda, voltear para que no quede boca abajo
+      ctx.drawImage(
+        torretImg,
+        -CONFIG.cannonSpriteW * CONFIG.cannonSpritePivotX,
+        -CONFIG.cannonSpriteH * CONFIG.cannonSpritePivotY + CONFIG.cannonSpriteOffsetY,
+        CONFIG.cannonSpriteW,
+        CONFIG.cannonSpriteH
+      );
+    } else {
+      ctx.fillStyle = "#19f2ff"; ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 10;
+      ctx.fillRect(-5, -45, 10, 45);
+      ctx.fillStyle = "#7a4dff"; ctx.shadowColor = "#7a4dff";
+      ctx.fillRect(-7, -54, 14, 14);
+      ctx.shadowBlur = 0;
+    }
     ctx.restore();
 
     // Estelas y balas
@@ -577,7 +701,7 @@
       });
     }
 
-    // Partículas
+        // Partículas
     particles.forEach(p => {
       ctx.globalAlpha = p.life;
       ctx.fillStyle = p.color;
@@ -587,7 +711,41 @@
     });
     ctx.globalAlpha = 1;
 
-    
+    // 🔗 PEDAGOGY: overlay pedagógico
+    if (window.PedagogyOverlay && state === "PLAYING") {
+      const shot = getCurrentShot();
+
+      // Trayectoria predicha + ticks
+      if (shot && pedagogyState.showTrajectory) {
+        PedagogyOverlay.drawPredictedTrajectory(ctx, shot.trajectory);
+        if (pedagogyState.showTicks) {
+          PedagogyOverlay.drawTimeTicks(ctx, shot.trajectory, 0.25);
+        }
+      }
+
+      // Vector v₀ en el cañón
+      if (shot && pedagogyState.showVectors) {
+        const pivotX = ship.x;
+        const pivotY = ship.y - CONFIG.shipH * CONFIG.cannonPivot;
+        PedagogyOverlay.drawV0Vector(ctx, pivotX, pivotY, shot.vx, shot.vy, { label: "v₀" });
+      }
+
+      // Vectores vx / vy sobre cada bala + panel de datos
+      bullets.forEach(b => {
+        if (pedagogyState.showVectors) {
+          PedagogyOverlay.drawComponentVectors(ctx, b.x, b.y, b.vx, b.vy);
+        }
+        if (pedagogyState.showLiveData) {
+          PedagogyOverlay.drawLiveDataBox(ctx, {
+            t: b.t || 0,
+            x: b.x,
+            y: b.y,
+            vx: b.vx,
+            vy: b.vy
+          }, { x: 20, y: 120 });
+        }
+      });
+    }
   }
 
   // --- BUCLE PRINCIPAL ---
@@ -602,8 +760,64 @@
     render();
   }
 
-  // --- ARRANQUE SEGURO ---
+    // --- ARRANQUE SEGURO ---
   initUI();
   requestAnimationFrame(gameLoop);
+
+  // 🔗 PEDAGOGY: montar panel + estado local + helpers
+  const pedagogyState = {
+    showTrajectory: true,
+    showTicks: true,
+    showVectors: true,
+    showLiveData: true
+  };
+
+  if (window.PedagogyPanel) {
+    PedagogyPanel.mount(document.body);
+    PedagogyPanel.on("flags", (f) => {
+      pedagogyState.showTrajectory = f.showTrajectory;
+      pedagogyState.showTicks      = f.showTicks;
+      pedagogyState.showVectors    = f.showVectors;
+      pedagogyState.showLiveData   = f.showLiveData;
+    });
+    PedagogyPanel.on("gravity", () => refreshPedagogyPanel());
+    console.log("[pedagogy] panel montado");
+  }
+
+  function getEffectiveGravity() {
+    return window.PedagogyPanel ? PedagogyPanel.getGravity() : CONFIG.gravity;
+  }
+
+  function getCurrentShot() {
+    if (!window.PhysicsEngine) return null;
+    const pivotX = ship.x;
+    const pivotY = ship.y - CONFIG.shipH * CONFIG.cannonPivot;
+    return PhysicsEngine.computeShot({
+      angleDeg: ship.angle,
+      power: ship.power,
+      gravity: getEffectiveGravity(),
+      bulletSpeedMult: CONFIG.bulletSpeedMult,
+      pivotX,
+      pivotY,
+      cannonLength: CONFIG.cannonLength,
+      yFloor: canvas.height,
+      steps: 80
+    });
+  }
+
+  function refreshPedagogyPanel() {
+    if (!window.PedagogyPanel || !window.PhysicsEngine) return;
+    const shot = getCurrentShot();
+    if (!shot) return;
+    PedagogyPanel.updatePanel({
+      angleDeg: shot.angleDeg,
+      v0: shot.v0,
+      vx: shot.vx,
+      vy: shot.vy,
+      timeOfFlight: shot.timeOfFlight,
+      range: shot.range,
+      maxHeight: shot.maxHeight
+    });
+  }
 
 })();

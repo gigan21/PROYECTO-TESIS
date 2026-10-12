@@ -118,7 +118,22 @@
                 🎯 Entrar al desafío
             </a>
         </div>
-       
+        {{-- 🏎️ Carrera de Gráficas --}}
+<div class="flex flex-col gap-4 rounded-2xl border-2 border-cyan-500/40 bg-white/10 p-6 shadow-xl backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-4">
+        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-3xl">
+            <img src="{{ asset('images/carreraJuego.jpg') }}" alt="Carrera de Gráficas" class="h-12 w-12 object-contain">
+        </div>
+        <div>
+            <h3 class="font-epic text-xl font-extrabold text-cyan-400">Carrera de Gráficas</h3>
+            <p class="text-sm text-slate-300">Interpreta gráficas de MRU/MRUV y llega a la meta.</p>
+        </div>
+    </div>
+    <a href="{{ route('estudiante.juego.carrera-graficas') }}"
+       class="shrink-0 rounded-xl border border-cyan-400 bg-linear-to-b from-cyan-500 to-cyan-700 px-6 py-3 text-center text-sm font-bold text-white shadow-md transition hover:shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+        🏁 Iniciar carrera
+    </a>
+</div>
     </section>
 
     <!-- ---------- COLUMNA DERECHA: CAMPO DE ENTRENAMIENTO ---------- -->

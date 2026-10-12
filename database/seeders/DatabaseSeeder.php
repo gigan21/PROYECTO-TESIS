@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             CrosswordWordsSeeder::class,
             BadgeSeeder::class,
             LoreVideoSeeder::class,
+            ProjectileTopicSeeder::class,
+            // Lanza la Cura: topic "Cinemática aplicada" (también se crea en CureSessionRecorder si falta)
+            // CureTopicSeeder::class,
             //LearningAnalyticsDemoSeeder::class,
         ]);
     }

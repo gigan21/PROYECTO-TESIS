@@ -326,8 +326,25 @@ const UI = (() => {
     $('juego').classList.remove('oculto');
   }
 
+  function actualizarMonedas(data) {
+    const coinsEl = $('hud-monedas-val');
+    const xpEl = $('hud-xp-val');
+    const topeEl = $('hud-tope-val');
+    if (!coinsEl && !xpEl && !topeEl) return;
+
+    if (coinsEl && data.coins != null) coinsEl.textContent = String(data.coins);
+    if (xpEl && data.xp != null) xpEl.textContent = String(data.xp);
+
+    const earned = data.daily_earned ?? data.dailyEarned;
+    const cap = data.daily_cap ?? data.dailyCap;
+    if (topeEl && earned != null && cap != null) {
+      topeEl.textContent = `${earned}/${cap}`;
+    }
+  }
+
   return {
     actualizarHUD,
+    actualizarMonedas,
     aplicarNivel,
     mostrarRonda,
     bloquearEntrada,

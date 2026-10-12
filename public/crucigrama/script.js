@@ -241,6 +241,12 @@ function render() {
         input.maxLength = 1;
         input.dataset.row = r;
         input.dataset.col = c;
+        // 🔗 FIX MÓVIL — desactivar autocorrector y elegir teclado adecuado
+          input.setAttribute('inputmode', 'text');
+         input.setAttribute('autocomplete', 'off');
+         input.setAttribute('autocorrect', 'off');
+         input.setAttribute('autocapitalize', 'characters');
+        input.setAttribute('spellcheck', 'false');
         input.addEventListener("input", handleInput);
         input.addEventListener("keydown", handleKeydown);
         input.addEventListener("focus", handleFocus);
@@ -351,7 +357,11 @@ function moveToNext(input) {
   if (word.direction === "across") nextC++;
   else nextR++;
 
-  focusCell(nextR, nextC);
+   // 🔗 FIX MÓVIL — usar requestAnimationFrame para que el navegador
+  // procese el input actual antes de mover el foco (evita cerrar el teclado)
+  requestAnimationFrame(() => {
+    focusCell(nextR, nextC);
+  });
 }
 
 function movePrev(r, c) {
@@ -366,7 +376,11 @@ function movePrev(r, c) {
   if (word.direction === "across") prevC--;
   else prevR--;
 
-  focusCell(prevR, prevC);
+   // 🔗 FIX MÓVIL — usar requestAnimationFrame para que el navegador
+  // procese el input actual antes de mover el foco (evita cerrar el teclado)
+  requestAnimationFrame(() => {
+    focusCell(prevR, prevC);
+  });
 }
 
 function focusCell(r, c) {
@@ -666,8 +680,16 @@ function regenerate() {
 /* ============================================================
    INICIALIZACIÓN
    ============================================================ */
+// 🔗 FIX MÓVIL — NO re-renderizar cuando el teclado virtual abre/cierra.
+// Solo re-renderiza si cambió el ancho (ej. rotar el celular), no la altura.
+let lastWidth = window.innerWidth;
 window.addEventListener("resize", () => {
-  if (placedWords.length) render();
+  // Si es solo cambio de altura (teclado virtual), ignorar.
+  if (window.innerWidth === lastWidth) return;
+  lastWidth = window.innerWidth;
+  if (placedWords.length && document.activeElement?.tagName !== 'INPUT') {
+    render();
+  }
 });
 
 window.generateCrossword = generateCrossword;

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Physics Engine — Test</title>
+<style>
+  :root {
+    --bg: #05030f;
+    --panel: #0d0a24;
+    --line: #1e1a3a;
+    --accent: #19f2ff;
+    --accent2: #7a4dff;
+    --pink: #ff2bd6;
+    --text: #eaf8ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: var(--bg); color: var(--text);
+    font-family: 'Rajdhani', system-ui, sans-serif;
+  }
+  h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); margin: 0 0 12px; font-size: 20px; letter-spacing: 1px; }
+  .wrap { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .row label { font-size: 13px; opacity: .85; }
+  .row input[type=range] { flex: 1; }
+  .val { font-family: 'Orbitron', monospace; color: var(--accent); min-width: 62px; text-align: right; font-size: 13px; }
+  .out dt { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: .6; }
+  .out dd { font-family: 'Orbitron', monospace; color: var(--accent2); margin: 0 0 10px; font-size: 15px; }
+  .out { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  canvas { background: #03020a; border: 1px solid var(--line); border-radius: 10px; width: 100%; height: auto; display: block; }
+  .hint { font-size: 12px; opacity: .55; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>🧪 Physics Engine — Validación</h1>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="row"><label>Ángulo (°)</label><input id="angle" type="range" min="10" max="170" value="110"><span class="val" id="angle-v">110</span></div>
+    <div class="row"><label>Potencia (%)</label><input id="power" type="range" min="15" max="100" value="60"><span class="val" id="power-v">60</span></div>
+    <div class="row"><label>Gravedad</label><input id="gravity" type="range" min="80" max="600" value="320"><span class="val" id="gravity-v">320</span></div>
+    <div class="row"><label>Mult. velocidad</label><input id="mult" type="range" min="1" max="15" step="0.5" value="7.5"><span class="val" id="mult-v">7.5</span></div>
+
+    <hr style="border-color: var(--line); margin: 12px 0;">
+
+    <dl class="out">
+      <div><dt>v₀</dt><dd id="o-v0">—</dd></div>
+      <div><dt>Ángulo rad</dt><dd id="o-rad">—</dd></div>
+      <div><dt>vx</dt><dd id="o-vx">—</dd></div>
+      <div><dt>vy</dt><dd id="o-vy">—</dd></div>
+      <div><dt>t vuelo</dt><dd id="o-t">—</dd></div>
+      <div><dt>Alcance</dt><dd id="o-r">—</dd></div>
+      <div><dt>Altura máx</dt><dd id="o-h">—</dd></div>
+      <div><dt>Puntos traza</dt><dd id="o-n">—</dd></div>
+    </dl>
+
+    <p class="hint">Se dibuja la trayectoria teórica desde el pivote del cañón (esquina inferior izquierda del canvas).</p>
+  </div>
+
+  <canvas id="cv" width="900" height="600"></canvas>
+</div>
+
+<script src="physics-engine.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), ctx = cv.getContext("2d");
+
+  // Pivote del cañón dentro del canvas de test
+  const PIVOT = { x: 120, y: cv.height - 80 };
+  const CANNON_LENGTH = 54;
+
+  function drawGrid() {
+    ctx.strokeStyle = "#131028";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= cv.width; x += 50) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
+    }
+    for (let y = 0; y <= cv.height; y += 50) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cv.width, y); ctx.stroke();
+    }
+  }
+
+  function drawPivot() {
+    // Base
+    ctx.fillStyle = "#19f2ff";
+    ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 8;
+    ctx.fillRect(PIVOT.x - 18, PIVOT.y - 6, 36, 12);
+    ctx.shadowBlur = 0;
+  }
+
+  function drawCannon(angleDeg) {
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    ctx.save();
+    ctx.translate(PIVOT.x, PIVOT.y);
+    ctx.rotate(rad);
+    ctx.fillStyle = "#19f2ff"; ctx.shadowColor = "#19f2ff"; ctx.shadowBlur = 10;
+    ctx.fillRect(-5, -CANNON_LENGTH, 10, CANNON_LENGTH);
+    ctx.fillStyle = "#7a4dff"; ctx.shadowColor = "#7a4dff";
+    ctx.fillRect(-7, -CANNON_LENGTH - 14, 14, 14);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawTrajectory(points) {
+    if (!points.length) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+    ctx.strokeStyle = "#ff2bd6";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Punto final
+    const last = points[points.length - 1];
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#ff2bd6";
+    ctx.fill();
+  }
+
+  function drawV0Vector(shot) {
+    const { startX, startY, pivotX = PIVOT.x, pivotY = PIVOT.y } = shot;
+    // Vector desde pivote hacia start
+    ctx.beginPath();
+    ctx.moveTo(PIVOT.x, PIVOT.y);
+    ctx.lineTo(startX, startY);
+    ctx.strokeStyle = "#7a4dff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    // Punta
+    arrowHead(startX, startY, Math.atan2(startY - PIVOT.y, startX - PIVOT.x), "#7a4dff");
+  }
+
+  function arrowHead(x, y, angle, color) {
+    const size = 9;
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-size, -size/2); ctx.lineTo(-size, size/2);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function readInputs() {
+    return {
+      angleDeg: parseFloat($("angle").value),
+      power: parseFloat($("power").value),
+      gravity: parseFloat($("gravity").value),
+      bulletSpeedMult: parseFloat($("mult").value)
+    };
+  }
+
+  function updateOutputs(shot) {
+    $("o-v0").textContent  = shot.v0.toFixed(1);
+    $("o-rad").textContent = ((shot.angleDeg - 90) * Math.PI / 180).toFixed(3);
+    $("o-vx").textContent  = shot.vx.toFixed(1);
+    $("o-vy").textContent  = shot.vy.toFixed(1);
+    $("o-t").textContent   = shot.timeOfFlight.toFixed(2) + " s";
+    $("o-r").textContent   = shot.range.toFixed(1);
+    $("o-h").textContent   = shot.maxHeight.toFixed(1);
+    $("o-n").textContent   = shot.trajectory.length;
+  }
+
+  function render() {
+    const inp = readInputs();
+
+    const shot = PhysicsEngine.computeShot({
+      ...inp,
+      pivotX: PIVOT.x,
+      pivotY: PIVOT.y,
+      cannonLength: CANNON_LENGTH,
+      yFloor: cv.height,
+      steps: 80
+    });
+
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawGrid();
+    drawPivot();
+    drawCannon(inp.angleDeg);
+    drawV0Vector({ ...shot, pivotX: PIVOT.x, pivotY: PIVOT.y });
+    drawTrajectory(shot.trajectory);
+    updateOutputs(shot);
+  }
+
+  // Bind
+  ["angle","power","gravity","mult"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      $(id + "-v").textContent = $(id).value;
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

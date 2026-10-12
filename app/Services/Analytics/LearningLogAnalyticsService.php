@@ -37,6 +37,8 @@ class LearningLogAnalyticsService
         $traducciones = [
             'crossword' => 'Crucigrama',
             'challenge' => 'Sala de Retos',
+            'projectiles' => 'Simulador de proyectiles',
+            'cure' => 'Lanza la Cura',
             'other' => 'Otros'
         ];
 
@@ -109,6 +111,8 @@ class LearningLogAnalyticsService
         $traducciones = [
             'crossword' => 'Crucigrama',
             'challenge' => 'Sala de Retos',
+            'projectiles' => 'Simulador de proyectiles',
+            'cure' => 'Lanza la Cura',
             'other' => 'Otros'
         ];
 

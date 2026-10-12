@@ -1,0 +1,330 @@
+/* ===== Carrera de Gráficas — estilos ===== */
+:root {
+  --asfalto: #262b33;
+  --fondo: #14171d;
+  
+  /* ✅ CAMBIO: Tarjetas oscuras semi-transparentes */
+  --papel: rgba(20, 23, 29, 0.85); 
+  
+  /* ✅ CAMBIO: Texto claro para que se lea en el fondo oscuro */
+  --tinta: #f1f3f6; 
+  --tinta-suave: #a0aab8;
+  
+  --naranja: #ff7a1a;
+  --verde: #23a36a;
+  --rojo: #e0474c;
+  --azul: #2b6be8;
+  --borde: #3b424d; /* Bordes más oscuros */
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  font-family: "Barlow Semi Condensed", system-ui, -apple-system, "Segoe UI", sans-serif;
+  
+  /* 
+     La ruta asume que el CSS está en una carpeta "css" y la imagen en "img" */
+  background-image: url('../img/fondo.jpg'); 
+  
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: var(--fondo); /* Color de respaldo por si no carga la imagen */
+  
+  /*  
+     Si lo quieres más claro, sube a 0.8. Si lo quieres más oscuro, baja a 0.4 */
+  background-blend-mode: overlay; 
+  background-color: rgba(20, 23, 29, 0.6); 
+  
+  color: var(--tinta);
+  min-height: 100vh;
+  font-size: 1.05rem;
+}
+.app { max-width: 880px; margin: 0 auto; padding: 1rem; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ---------- Tarjetas ---------- */
+.card {
+  background: var(--papel);
+  backdrop-filter: blur(12px); /* ✅ Efecto cristal */
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 122, 26, 0.3); /* Borde naranja sutil */
+  box-shadow: 0 0 20px rgba(255, 122, 26, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.05); /* Resplandor neón */
+}
+.card.center { text-align: center; padding: 2.5rem 1.5rem; 
+ 
+}
+.card.center > * + * { margin-top: 1rem; align-items: center; }
+h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+.kicker { font-size: 1.5rem; font-weight: 700; color: var(--azul); }
+.hint { color: var(--tinta-suave); font-size: 0.95rem; }
+.error { color: var(--rojo); font-weight: 600; }
+.score { font-size: 2rem; font-weight: 700; }
+.end-msg { max-width: 34ch; margin-inline: auto; }
+
+.btn {
+  background: var(--naranja);
+  color: #1b1206;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.85rem 1.8rem;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible, .opt:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+#next-btn { margin-top: 1rem; }
+
+/* ---------- Pista ---------- */
+.track-card { margin-bottom: 1rem; color: #fff; }
+.track-labels {
+  display: flex; justify-content: space-between;
+  font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em;
+  margin-bottom: 0.35rem;
+}
+.road {
+  position: relative;
+  height: 76px;
+  border-radius: 10px;
+  background: var(--asfalto);
+  overflow: hidden;
+  border: 2px solid var(--azul); /* ✅ Borde neón azul */
+  box-shadow: 0 0 10px rgba(43, 107, 232, 0.5);
+}
+/* bordes de la pista tipo "piano" */
+.road::before, .road::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 6px;
+  background: repeating-linear-gradient(90deg, var(--rojo) 0 18px, #fff 18px 36px);
+}
+.road::before { top: 0; }
+.road::after { bottom: 0; }
+/* carril: la posición del auto se mide dentro de este contenedor */
+.lane {
+  position: absolute; left: 10px; right: 78px; top: 0; bottom: 0;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 20px, transparent 20px 40px) 0 50% / 100% 3px no-repeat;
+}
+.car {
+  position: absolute; top: 50%;
+  left: calc(var(--p, 0) * 1%);
+  transform: translate(calc(var(--p, 0) * -1%), -50%);
+  line-height: 0;
+}
+.car-img { width: 104px; height: auto; display: block; }
+.boom { position: absolute; left: 50%; top: 50%; width: 120px; transform: translate(-50%, -50%); max-width: none; }
+.boom[hidden] { display: none; }
+.finish-line {
+  position: absolute; right: 0; top: 6px; bottom: 6px; width: 16px;
+  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 16px 16px;
+}
+.finish-flag { position: absolute; right: 26px; top: 50%; transform: translateY(-50%); font-size: 1.9rem; }
+.round-label { margin-top: 0.4rem; text-align: center; font-weight: 600; }
+
+.wobble { animation: wobble 0.75s; transform-origin: 60% 80%; }
+@keyframes wobble {
+  0%, 100% { transform: rotate(0) translateX(0); }
+  15% { transform: rotate(-9deg) translateX(-8px); }
+  35% { transform: rotate(7deg) translateX(7px); }
+  55% { transform: rotate(-5deg) translateX(-5px); }
+  75% { transform: rotate(3deg) translateX(3px); }
+}
+.pulse { animation: pulse 0.6s 2; }
+@keyframes pulse { 50% { filter: brightness(1.6); } }
+
+/* ---------- Desafío ---------- */
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.badge { padding: 0.4rem 1.1rem; border-radius: 999px; font-weight: 700; font-size: 1.35rem; }
+.badge[data-type="identify"] { background: #d9f2e5; color: #0f6b43; }
+.badge[data-type="predict"]  { background: #fcefc8; color: #7a5600; }
+.badge[data-type="choose"]   { background: #fadadb; color: #9b2227; }
+
+.timer { font-size: 1.5rem; font-weight: 700; }
+.timer.low { color: var(--rojo); }
+.timebar { height: 6px; background: var(--borde); border-radius: 3px; margin: 0.6rem 0 1rem; overflow: hidden; }
+#timebar-fill { height: 100%; width: 100%; background: var(--naranja); }
+
+h2 { font-size: 1.45rem; line-height: 1.2; }
+.sub { color: var(--tinta-suave); margin-top: 0.25rem; }
+
+.graph-box {
+  width: 100% !important;
+  height: 260px !important;   /* altura fija en móvil */
+  display: block;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 0.5rem;
+  margin-top: 0.9rem;
+  position: relative;          /* Chart.js necesita posición relativa */
+  overflow: hidden;
+}
+
+.graph-box canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Mini-animación "Predice" */
+.demo { margin-top: 0.8rem; }
+.demo[hidden] { display: none; }
+.demo-road { position: relative; height: 48px; background: var(--asfalto); border-radius: 8px; overflow: hidden; }
+.demo-car {
+  position: absolute; top: 50%;
+  left: calc(var(--d, 0) * 1%);
+  transform: translate(calc(var(--d, 0) * -1%), -50%);
+  line-height: 0;
+}
+.demo-car img { width: 76px; height: auto; display: block; }
+.demo-car.idle img { animation: idle 0.25s infinite; }
+@keyframes idle { 50% { transform: translateY(-2px); } }
+.demo-label { margin-top: 0.3rem; font-weight: 600; color: var(--tinta-suave); }
+
+/* ---------- Opciones ---------- */
+.options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; margin-top: 1rem; }
+.options.graphs { grid-template-columns: repeat(3, 1fr);
+gap: 0.5rem; /* Reducir un poco el espacio entre ellas */
+  width: 100%; /* Asegura que no se salgan del contenedor padre */
+  overflow: hidden;
+}
+.opt {
+  background: #262b33; /* ✅ Fondo oscuro para las opciones */
+  color: var(--tinta); /* Texto claro */
+  border: 2px solid var(--borde); 
+  border-radius: 12px;
+  padding: 0.9rem 1rem; 
+  text-align: left;
+  font: inherit; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: all 0.15s; /* Transición suave para todos los cambios */
+}
+
+.opt:hover:not(:disabled) { 
+  border-color: var(--azul); 
+  background: #2f3640; /* Un poco más claro al pasar el mouse */
+}
+.opt:disabled { cursor: default; color: var(--tinta); }
+/* ✅ Acierto: Fondo verde oscuro, borde verde brillante */
+.opt.right { 
+  border-color: var(--verde); 
+  background: #0f3d2a; /* Verde oscuro */
+  color: #fff;
+}
+
+/* ✅ Fallo: Fondo rojo oscuro, borde rojo brillante */
+.opt.wrong { 
+  border-color: var(--rojo); 
+  background: #4a1c1e; /* Rojo oscuro */
+  color: #fff;
+}
+.graph-opt { 
+   background: #262b33;
+  padding: 0.4rem;
+  min-width: 0; /* Esto es CLAVE para que Chart.js no empuje el contenedor */
+  overflow: hidden;
+ }
+ .mini {
+  width: 100%;
+  height: 175px;
+  pointer-events: none;
+  position: relative;
+}
+
+.mini canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .graph-box {
+    height: 220px !important;
+    padding: 0.4rem;
+  }
+  .mini {
+    height: 130px;
+  }
+  .options.graphs {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil, no 3 */
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .options.graphs {
+    grid-template-columns: 1fr; /* 1 columna en pantallas muy chicas */
+  }
+}
+
+/* ---------- Retroalimentación ---------- */
+.feedback { margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 12px; border-left: 6px solid; }
+.feedback[hidden] { display: none; }
+/* ✅ Feedback cuando aciertas */
+.feedback.ok  { 
+  border-color: var(--verde); 
+  background: rgba(35, 163, 106, 0.15); /* Verde transparente oscuro */
+  color: #fff;
+}
+
+/* ✅ Feedback cuando fallas */
+.feedback.bad { 
+  border-color: var(--rojo);  
+  background: rgba(224, 71, 76, 0.15); /* Rojo transparente oscuro */
+  color: #fff;
+}
+.feedback strong { font-size: 1.2rem; }
+.feedback p { margin-top: 0.3rem; }
+#fb-race { font-weight: 700; }
+
+@media (max-width: 640px) {
+  .options, .options.graphs { grid-template-columns: 1fr; }
+  .graph-box { height: 230px; }
+  .mini { height: 150px; }
+  .road { height: 64px; }
+  .car-img { width: 80px; }
+  .boom { width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Mejoras visuales ---------- */
+.challenge { border-top: 10px solid var(--borde); transition: opacity 0.25s; }
+.challenge[data-type="identify"] { border-top-color: var(--verde); }
+.challenge[data-type="predict"]  { border-top-color: #f0b429; }
+.challenge[data-type="choose"]   { border-top-color: var(--rojo); }
+.challenge.fade-out { opacity: 0; }
+.challenge.fade-in { animation: fadein 0.35s; }
+@keyframes fadein { from { opacity: 0; transform: translateY(8px); } }
+.options.graphs .opt { transition: opacity 0.15s, border-color 0.12s; }
+.options.graphs:hover .opt:not(:hover):not(:disabled) { opacity: 0.4; }
+.round-label.pop { animation: pop 0.5s; }
+@keyframes pop { 40% { transform: scale(1.25); } }
+.dots { display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.4rem; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: #3b424d; border: 2px solid #5b6472; }
+.dot.now { border-color: #fff; background: var(--naranja); }
+.dot.ok { background: var(--verde); border-color: var(--verde); }
+.dot.bad { background: var(--rojo); border-color: var(--rojo); }
+.start-track { height: 56px; border-radius: 8px; background: var(--asfalto) repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 20px, transparent 20px 40px) 0 50% / 100% 3px no-repeat; position: relative; overflow: hidden; }
+.start-car { position: absolute; top: 8px; width: 96px; animation: drive 4s linear infinite; }
+@keyframes drive { from { left: -110px; } to { left: 100%; } }
+.stars { font-size: 3rem; letter-spacing: 0.2rem; }
+.score-big { font-size: 3rem; font-weight: 700; color: var(--azul); }
+.review { text-align: left; max-width: 46ch; margin-inline: auto; padding-left: 1.2rem;
+margin-inline: auto;
+}
+.review[hidden] { display: none; }
+.review li + li { margin-top: 0.5rem; }
+/* 🔗 FIX — cuando graph-box está oculto, respetar el hidden sin excepción */
+.graph-box[hidden] {
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}

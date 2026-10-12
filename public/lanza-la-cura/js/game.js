@@ -251,9 +251,54 @@ const Game = (() => {
     Estado.pistaUsadaEnIntento = false;
   }
 
+  function buildTelemetryExtra() {
+    const repaso = [...Estado.formulasRepasar].filter((t) => !Estado.formulasDominadas.has(t));
+    return {
+      levelReached: Estado.nivelActual,
+      nivelesCompletados: Estado.nivelesCompletados,
+      score: Math.round(Estado.puntuacion),
+      maxStreak: Estado.rachaMaxSesion,
+      formulasMastered: [...Estado.formulasDominadas],
+      formulasReview: repaso,
+    };
+  }
+
+  // 🔗 MONEDAS NIVEL
+  function enviarRecompensaNivel(level) {
+    if (!window.CureTelemetry || Estado.nivelesCompletados < 1) return;
+    const data = CureTelemetry.snapshot({
+      ...buildTelemetryExtra(),
+      finished: false,
+      won: false,
+      abandoned: false,
+      levelCompleted: level,
+    });
+    if (data && typeof window.sendReward === 'function') {
+      window.sendReward(data);
+    }
+  }
+
+  // 🔗 TELEMETRIA
+  function finalizarPartida(victoria) {
+    if (!window.CureTelemetry) return;
+    CureTelemetry.recordLevelEnd(Estado.nivelActual);
+    const data = CureTelemetry.snapshot({
+      ...buildTelemetryExtra(),
+      won: victoria,
+      finished: true,
+      abandoned: false,
+      levelCompleted: Estado.nivelesCompletados,
+    });
+    // 🔗 MONEDAS
+    if (data && typeof window.sendReward === 'function') {
+      window.sendReward(data);
+    }
+  }
+
   function cargarNivel(num, opts = {}) {
     const nivel = Niveles.getNivel(num);
     Estado.nivelActual = num;
+    if (window.CureTelemetry) CureTelemetry.recordLevelStart(num);
     Estado.nivelConfig = nivel;
     Estado.sueloY = nivel.sueloY;
     Estado.obstaculosInstanciados = Niveles.instanciarObstaculos(nivel);
@@ -293,6 +338,8 @@ const Game = (() => {
     UI.ocultarFeedback();
     UI.ocultarResolucion();
     UI.mostrarJuego();
+    if (window.CureTelemetry) CureTelemetry.startSession();
+    window.__cureAbandonSent = false;
     cargarNivel(1);
   }
 
@@ -372,6 +419,9 @@ const Game = (() => {
   function procesarAcierto() {
     const i = Estado.ultimoIntento;
     const r = Estado.ronda;
+    if (window.CureTelemetry) {
+      CureTelemetry.recordAnswer({ formula: r.formula.texto, correct: true, errorType: null });
+    }
     Estado.intentos++;
     Estado.racha++;
     Estado.rachaMaxSesion = Math.max(Estado.rachaMaxSesion, Estado.racha);
@@ -396,7 +446,13 @@ const Game = (() => {
         titulo: '✓ LYRA CURADA',
         lineas: [`+${pts} pts (racha ×${mult})`, '¡Misión completa!'],
       });
-      programar(CONFIG.T_FEEDBACK_ACIERTO, () => UI.mostrarPantallaFinal(true));
+      programar(CONFIG.T_FEEDBACK_ACIERTO, () => {
+        const victoria = Estado.nivelesCompletados === 4;
+        if (window.CureTelemetry) CureTelemetry.recordLevelEnd(Estado.nivelActual);
+        enviarRecompensaNivel(4);
+        finalizarPartida(victoria);
+        UI.mostrarPantallaFinal(victoria);
+      });
       return;
     }
 
@@ -412,6 +468,8 @@ const Game = (() => {
       ],
     });
     programar(CONFIG.T_FEEDBACK_ACIERTO, () => {
+      if (window.CureTelemetry) CureTelemetry.recordLevelEnd(Estado.nivelActual);
+      enviarRecompensaNivel(Estado.nivelActual);
       cargarNivel(siguiente, { transicion: true, narrativa: Niveles.getNivel(siguiente).narrativa });
     });
   }
@@ -430,6 +488,9 @@ const Game = (() => {
   function procesarFallo() {
     const i = Estado.ultimoIntento;
     const r = Estado.ronda;
+    if (window.CureTelemetry) {
+      CureTelemetry.recordAnswer({ formula: r.formula.texto, correct: false, errorType: i.tipoError });
+    }
     const rachaPerdida = Estado.racha > 0;
     Estado.racha = 0;
     Estado.intentos++;
@@ -456,7 +517,11 @@ const Game = (() => {
     UI.feedback({ tipo: 'error', titulo: '✕ FALLO', lineas });
 
     if (Estado.fallos >= CONFIG.DOSIS_MAX) {
-      programar(CONFIG.T_FEEDBACK_FALLO, () => UI.mostrarPantallaFinal(false));
+      programar(CONFIG.T_FEEDBACK_FALLO, () => {
+        const victoria = Estado.nivelesCompletados === 4;
+        finalizarPartida(victoria);
+        UI.mostrarPantallaFinal(victoria);
+      });
       return;
     }
 
@@ -467,6 +532,7 @@ const Game = (() => {
 
   function usarPista() {
     if (!Estado.enJuego || Estado.fase !== 'resultado' || Estado.pistaUsadaEnIntento) return;
+    if (window.CureTelemetry) CureTelemetry.recordPista();
     Estado.pistaUsadaEnIntento = true;
     Estado.puntuacion = Math.max(0, Estado.puntuacion - CONFIG.PENALIZACION_PISTA);
     UI.mostrarResolucion(Estado.ultimosPasos || [], true);
@@ -500,6 +566,24 @@ const Game = (() => {
   function reiniciar() {
     iniciar();
   }
+
+  // 🔗 MONEDAS NIVEL — abandono (recarga / cierre pestaña)
+  window.cureAbandonIfNeeded = function cureAbandonIfNeeded() {
+    if (!Estado.enJuego || !window.CureTelemetry) return;
+    if (Estado.nivelesCompletados < 1) return;
+    if (window.__cureAbandonSent) return;
+    window.__cureAbandonSent = true;
+    const data = CureTelemetry.snapshot({
+      ...buildTelemetryExtra(),
+      won: false,
+      finished: true,
+      abandoned: true,
+      levelCompleted: Estado.nivelesCompletados,
+    });
+    if (data && typeof window.sendReward === 'function') {
+      window.sendReward(data, { beacon: true });
+    }
+  };
 
   return {
     iniciar,

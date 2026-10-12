@@ -1,0 +1,191 @@
+/* =========================================================================
+   PEDAGOGY PANEL — Estilos del panel lateral de datos en vivo
+   ========================================================================= */
+
+.pdp {
+  position: fixed;
+  top: 90px;
+  right: 16px;
+  width: 280px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  background: rgba(13, 10, 36, 0.94);
+  border: 1px solid #1e1a3a;
+  border-radius: 12px;
+  padding: 14px;
+  color: #eaf8ff;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 13px;
+  z-index: 50;
+  backdrop-filter: blur(6px);
+  transition: transform .25s ease, opacity .25s ease;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.pdp.collapsed {
+  transform: translateX(calc(100% + 20px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Cabecera --- */
+.pdp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e1a3a;
+}
+
+.pdp-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #19f2ff;
+  text-transform: uppercase;
+}
+
+.pdp-close {
+  background: none;
+  border: 0;
+  color: #eaf8ff;
+  opacity: .6;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+  font-family: inherit;
+}
+.pdp-close:hover { opacity: 1; color: #ff2bd6; }
+
+/* --- Secciones --- */
+.pdp-section {
+  margin-bottom: 14px;
+}
+
+.pdp-section-title {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #7a4dff;
+  margin-bottom: 6px;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* --- Filas de datos --- */
+.pdp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.pdp-row .k {
+  opacity: .7;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.pdp-row .v {
+  font-family: 'Orbitron', monospace;
+  color: #19f2ff;
+  font-size: 12px;
+}
+
+.pdp-row .v.hot  { color: #ffd166; }
+.pdp-row .v.cool { color: #7a4dff; }
+
+/* --- Slider gravedad --- */
+.pdp-gravity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.pdp-gravity input[type=range] {
+  flex: 1;
+  accent-color: #ff2bd6;
+}
+
+.pdp-gravity .g-val {
+  font-family: 'Orbitron', monospace;
+  color: #ff2bd6;
+  font-size: 12px;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* --- Toggles --- */
+.pdp-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pdp-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background .15s;
+  font-size: 12px;
+  opacity: .85;
+}
+
+.pdp-toggle:hover { background: rgba(25, 242, 255, 0.06); }
+
+.pdp-toggle input[type=checkbox] {
+  accent-color: #19f2ff;
+  cursor: pointer;
+}
+
+.pdp-toggle input:checked ~ span {
+  color: #19f2ff;
+  opacity: 1;
+}
+
+/* --- Botón colapsar (cuando está oculto) --- */
+.pdp-reopen {
+  position: fixed;
+  top: 90px;
+  right: 16px;
+  z-index: 49;
+  background: rgba(13, 10, 36, 0.94);
+  border: 1px solid #1e1a3a;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  color: #19f2ff;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+.pdp-reopen.show { display: flex; }
+.pdp-reopen:hover { border-color: #19f2ff; box-shadow: 0 0 12px rgba(25,242,255,0.4); }
+
+/* --- Barra mini inferior (opcional) --- */
+.pdp-mini {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 10, 36, 0.92);
+  border: 1px solid #1e1a3a;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: #19f2ff;
+  z-index: 48;
+  gap: 14px;
+}
+.pdp-mini span { white-space: nowrap; }
+.pdp-mini .sep { opacity: .3; }

@@ -514,3 +514,27 @@
   .feedback { padding: 8px 14px; font-size: .85rem; top: 6px; }
   .feedback-titulo { font-size: 1rem; }
 }
+
+/* HUD gamificación (monedas / XP / tope diario) */
+.hud-monedas .hud-valor,
+.hud-xp .hud-valor {
+  color: var(--amarillo);
+  font-size: 0.95rem;
+}
+
+.hud-tope .hud-tope-val {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .hud-monedas,
+  .hud-xp,
+  .hud-tope {
+    min-width: 0;
+  }
+  .hud-tope .hud-label {
+    display: none;
+  }
+}

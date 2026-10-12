@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carrera de Gráficas — MRU/MRUV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<main class="app">
+
+  <!-- ========== PANTALLA INICIAL ========== -->
+  <section id="screen-start" class="screen active">
+    <div class="card center">
+      <div class="start-track"><img class="start-car" src="img/auto.png" alt=""></div>
+      <h1>🏎️ CARRERA DE GRÁFICAS</h1>
+      <p class="kicker">MRU / MRUV</p>
+      <p>Interpreta las gráficas y llega a la meta.</p>
+      <p class="hint">6 rondas · 15 segundos por ronda · necesitas 5 aciertos para cruzar la meta</p>
+      <button id="start-btn" class="btn" type="button">COMENZAR</button>
+      <p id="start-error" class="error" hidden>
+        No se pudo cargar Chart.js. Revisa tu conexión a internet y recarga la página.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== PANTALLA DE JUEGO ========== -->
+  <section id="screen-game" class="screen">
+
+    <!-- Pista -->
+    <div class="track-card">
+      <div class="track-labels"><span>SALIDA</span><span>META</span></div>
+      <div class="road">
+        <div class="lane"><div class="car" id="car"><img class="car-img" src="img/auto2.png" alt="Auto de carrera"><img class="boom" src="img/explosion.gif" alt="" hidden></div></div>
+        <div class="finish-line"></div>
+        <div class="finish-flag">🏁</div>
+      </div>
+      <p class="round-label" id="round-label">Ronda 1 / 6</p>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+    </div>
+
+    <!-- Desafío -->
+    <div class="card challenge" id="challenge">
+      <div class="card-head">
+        <span class="badge" id="badge"></span>
+        <span class="timer">⏱ <b id="time">15</b></span>
+      </div>
+      <div class="timebar"><div id="timebar-fill"></div></div>
+
+      <h2 id="prompt"></h2>
+      <p class="sub" id="sub"></p>
+
+      <div class="graph-box" id="graph-box"></div>
+
+      <!-- Mini-animación del desafío "Predice" -->
+      <div class="demo" id="demo" hidden>
+        <div class="demo-road"><div class="demo-car" id="demo-car"><img src="img/auto2.png" alt=""></div></div>
+        <p class="demo-label" id="demo-label"></p>
+      </div>
+
+      <div id="options" class="options"></div>
+
+      <div id="feedback" class="feedback" hidden role="status" aria-live="polite">
+        <strong id="fb-title"></strong>
+        <p id="fb-text"></p>
+        <p id="fb-race"></p>
+      </div>
+
+      <button id="next-btn" class="btn" type="button" hidden>Siguiente ronda</button>
+    </div>
+  </section>
+
+  <!-- ========== PANTALLA FINAL ========== -->
+  <section id="screen-end" class="screen">
+    <div class="card center">
+      <h1>🏁 ¡CARRERA TERMINADA!</h1>
+      <p class="stars" id="stars" aria-hidden="true"></p>
+      <p class="score-big" id="score"></p>
+      <ul class="review" id="review"></ul>
+      <p class="end-msg" id="end-msg"></p>
+      <button id="again-btn" class="btn" type="button">JUGAR DE NUEVO</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="js/chart.min.js"></script>
+<script>
+  // 🔗 Verificación: avisa si Chart.js no cargó
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof Chart === 'undefined') {
+      console.error('❌ Chart.js no se cargó');
+      const err = document.getElementById('start-error');
+      if (err) {
+        err.hidden = false;
+        err.textContent = 'Error: Chart.js no se pudo cargar. Recarga la página.';
+      }
+    } else {
+      console.log('✅ Chart.js v' + Chart.version + ' cargado');
+    }
+  });
+</script>
+<script src="js/questions.js"></script>
+<script src="js/questions-extra.js"></script>
+<script src="js/graphs.js"></script>
+<script src="js/animation.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

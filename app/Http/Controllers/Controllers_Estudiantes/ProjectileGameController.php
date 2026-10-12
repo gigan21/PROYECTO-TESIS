@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Controllers_Estudiantes;
 
 use App\Http\Controllers\Controller;
-use App\Models\CoinTransaction;
+use App\Http\Requests\Projectiles\ProjectileGameRewardRequest;
 use App\Services\Gamification\CoinService;
+use App\Services\Games\GamesDailyCoinCapService;
+use App\Services\Projectiles\ProjectileCoinRewardCalculator;
+use App\Services\Projectiles\ProjectileLevelRewardGuard;
+use App\Services\Projectiles\ProjectileSessionRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,132 +18,116 @@ class ProjectileGameController extends Controller
 {
     public function __construct(
         private readonly CoinService $coins,
+        private readonly ProjectileCoinRewardCalculator $rewardCalculator,
+        private readonly ProjectileLevelRewardGuard $rewardGuard,
+        private readonly ProjectileSessionRecorder $sessionRecorder,
+        private readonly GamesDailyCoinCapService $dailyCap,
     ) {}
 
-    /**
-     * Se llama al superar un nivel (o al terminar la partida ganando).
-     *
-     * Body esperado:
-     *   - level:    int (1..5)  Nivel recién superado
-     *   - score:    int         Puntos acumulados al terminar el nivel
-     *   - finished: bool        true si es el nivel 5 (partida completa)
-     *   - is_win:   bool        true si ganó, false si perdió (para estadística)
-     */
-    public function reward(Request $request): JsonResponse
+    public function reward(ProjectileGameRewardRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'level'    => ['required', 'integer', 'min:1', 'max:5'],
-            'score'    => ['required', 'integer', 'min:0'],
-            'finished' => ['required', 'boolean'],
-            'is_win'   => ['required', 'boolean'],
-        ]);
-
+        $validated = $request->validated();
         $user = $request->user();
+
         $level = (int) $validated['level'];
         $score = (int) $validated['score'];
         $finished = (bool) $validated['finished'];
         $isWin = (bool) $validated['is_win'];
+        $sessionId = (string) $validated['session_id'];
+        /** @var array<string, mixed>|null $telemetry */
+        $telemetry = $validated['telemetry'] ?? null;
 
-        // 1) Cuántas monedas corresponden por el rango de puntos
-        $baseCoins = $this->coinsForScore($score);
+        $this->sessionRecorder->recordIfFinished(
+            user: $user,
+            finished: $finished,
+            isWin: $isWin,
+            level: $level,
+            score: $score,
+            telemetry: $telemetry,
+        );
 
-        // 2) Bonus si terminó los 5 niveles con victoria
-        $bonusCoins = ($finished && $isWin) ? (int) config('projectiles.win_bonus') : 0;
+        $requestedCoins = $this->rewardCalculator->calculate($finished, $isWin);
 
-        // 3) Aplicar tope diario
-        $dailyCap = (int) config('projectiles.daily_cap');
-        $alreadyEarnedToday = $this->coinsEarnedToday($user->id);
+        if ($requestedCoins <= 0) {
+            return $this->jsonResponse($user, 0, false, false);
+        }
+
+        $dailyCap = $this->dailyCap->dailyCap();
+        $alreadyEarnedToday = $this->dailyCap->earnedToday($user->id);
         $available = max(0, $dailyCap - $alreadyEarnedToday);
+        $toAward = min($requestedCoins, $available);
+        $capped = $toAward < $requestedCoins;
 
-        $requested = $baseCoins + $bonusCoins;
-        $toAward = min($requested, $available);
-
-        // 4) Si no se puede dar nada, responder sin error
-        if ($toAward <= 0) {
+        if (! $this->rewardGuard->tryClaim($user, $sessionId, $level, $finished, $toAward)) {
             return response()->json([
                 'coins' => $this->coins->getBalance($user),
                 'coins_delta' => 0,
+                'total_coins' => $this->coins->getBalance($user),
+                'duplicate' => true,
                 'daily_earned' => $alreadyEarnedToday,
                 'daily_cap' => $dailyCap,
-                'capped' => true,
-                'message' => 'Has alcanzado el tope diario de monedas en este juego.',
+                'capped' => false,
             ]);
         }
 
-        // 5) Registrar las monedas con el CoinService
-        $newBalance = $this->coins->addCoins(
+        if ($toAward <= 0) {
+            return $this->jsonResponse($user, 0, true, true);
+        }
+
+        $this->coins->addCoins(
             user: $user,
             amount: $toAward,
             source: 'projectiles',
-            description: "Simulador de proyectiles — nivel {$level} ({$score} pts)",
+            description: $finished
+                ? "Simulador de proyectiles — partida final (nivel {$level})"
+                : "Simulador de proyectiles — nivel {$level} superado",
             metadata: [
                 'level' => $level,
                 'score' => $score,
                 'finished' => $finished,
                 'is_win' => $isWin,
-                'base_coins' => $baseCoins,
-                'bonus_coins' => $bonusCoins,
-                'capped' => $toAward < $requested,
+                'session_id' => $sessionId,
+                'requested_coins' => $requestedCoins,
+                'capped' => $capped,
             ]
         );
 
-        return response()->json([
-            'coins' => $newBalance,
-            'coins_delta' => $toAward,
-            'base_coins' => $baseCoins,
-            'bonus_coins' => $bonusCoins,
-            'daily_earned' => $alreadyEarnedToday + $toAward,
-            'daily_cap' => $dailyCap,
-            'capped' => $toAward < $requested,
-        ]);
+        return $this->jsonResponse($user, $toAward, $capped, false);
     }
 
-    /**
-     * Devuelve el estado de recompensas del usuario (para mostrarlo en el juego).
-     */
     public function status(Request $request): JsonResponse
     {
         $user = $request->user();
-        $dailyCap = (int) config('projectiles.daily_cap');
-        $earnedToday = $this->coinsEarnedToday($user->id);
+        $dailyCap = $this->dailyCap->dailyCap();
+        $earnedToday = $this->dailyCap->earnedToday($user->id);
 
         return response()->json([
             'coins' => $this->coins->getBalance($user),
             'daily_earned' => $earnedToday,
             'daily_cap' => $dailyCap,
             'daily_remaining' => max(0, $dailyCap - $earnedToday),
-            'rewards' => config('projectiles.rewards'),
+            'level_coins' => (int) config('projectiles.level_coins'),
             'win_bonus' => (int) config('projectiles.win_bonus'),
         ]);
     }
 
-    /**
-     * Calcula cuántas monedas corresponden por el puntaje.
-     */
-    private function coinsForScore(int $score): int
+    private function jsonResponse($user, int $coinsDelta, bool $capped, bool $capOnly): JsonResponse
     {
-        foreach (config('projectiles.rewards') as $range) {
-            $min = (int) $range['min'];
-            $max = $range['max'] === null ? PHP_INT_MAX : (int) $range['max'];
+        $dailyCap = $this->dailyCap->dailyCap();
+        $earnedToday = $this->dailyCap->earnedToday($user->id);
+        $balance = $this->coins->getBalance($user);
 
-            if ($score >= $min && $score <= $max) {
-                return (int) $range['coins'];
-            }
-        }
-
-        return 0;
+        return response()->json([
+            'coins' => $balance,
+            'coins_delta' => $coinsDelta,
+            'total_coins' => $balance,
+            'daily_earned' => $earnedToday,
+            'daily_cap' => $dailyCap,
+            'capped' => $capped || $capOnly,
+            'message' => $capOnly
+                ? 'Has alcanzado el tope diario de monedas en este juego.'
+                : null,
+        ]);
     }
 
-    /**
-     * Cuántas monedas ha ganado hoy el usuario en este juego.
-     */
-    private function coinsEarnedToday(int $userId): int
-    {
-        return (int) CoinTransaction::query()
-            ->where('user_id', $userId)
-            ->where('source', 'projectiles')
-            ->where('amount', '>', 0)
-            ->whereDate('created_at', today())
-            ->sum('amount');
-    }
 }

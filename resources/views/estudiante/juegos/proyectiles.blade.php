@@ -47,17 +47,26 @@
         </div>
     </section>
 
-    <!-- CONTENEDOR DEL JUEGO -->
-    <main class="mx-auto max-w-6xl space-y-6 px-6 py-6">
-        <div class="rounded-2xl border border-slate-200 bg-white p-2 shadow-lg h-[700px] lg:h-[800px]">
-            <iframe
-                id="game-frame"
-                src="{{ asset('JUEGO_PROYECTILES/index.html') }}?csrf={{ urlencode(csrf_token()) }}&reward_url={{ urlencode(route('estudiante.proyectiles.api.reward')) }}&status_url={{ urlencode(route('estudiante.proyectiles.api.status')) }}"
-                class="w-full h-full border-0 rounded-xl"
-                allowfullscreen>
-            </iframe>
-        </div>
-    </main>
+   <!-- CONTENEDOR DEL JUEGO -->
+<main class="mx-auto max-w-6xl space-y-6 px-6 py-6">
+    <div id="game-wrapper" class="relative rounded-2xl border border-slate-200 bg-white p-2 shadow-lg h-[700px] lg:h-[800px]">
+        <!-- Botón pantalla completa -->
+        <button
+            id="btn-fullscreen"
+            type="button"
+            class="absolute right-3 top-3 z-10 rounded-lg bg-slate-900/80 px-3 py-2 text-xs font-semibold text-white backdrop-blur hover:bg-slate-900"
+            title="Pantalla completa">
+            ⛶ Pantalla completa
+        </button>
+
+        <iframe
+            id="game-frame"
+            src="{{ asset('JUEGO_PROYECTILES/index.html') }}?csrf={{ urlencode(csrf_token()) }}&reward_url={{ urlencode(route('estudiante.proyectiles.api.reward')) }}&status_url={{ urlencode(route('estudiante.proyectiles.api.status')) }}"
+            class="w-full h-full border-0 rounded-xl"
+            allowfullscreen>
+        </iframe>
+    </div>
+</main>
 
     <!-- SCRIPT: actualiza el panel de monedas y escucha mensajes del iframe -->
     <script>
@@ -128,6 +137,31 @@
 
             // 3) Exponer el token por si en el futuro lo necesitamos aquí
             window.__projectiles_csrf = csrfToken;
+            // Pantalla completa del juego
+const wrapper = document.getElementById('game-wrapper');
+const btnFs = document.getElementById('btn-fullscreen');
+
+btnFs.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        wrapper.requestFullscreen().then(() => {
+            // Ajustar estilos al entrar
+            wrapper.classList.remove('rounded-2xl', 'h-[700px]', 'lg:h-[800px]');
+            wrapper.classList.add('rounded-none', 'w-screen', 'h-screen', 'p-0');
+            btnFs.textContent = '✕ Salir';
+        }).catch(err => console.warn('Fullscreen error:', err));
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        // Restaurar estilos al salir
+        wrapper.classList.add('rounded-2xl', 'h-[700px]', 'lg:h-[800px]');
+        wrapper.classList.remove('rounded-none', 'w-screen', 'h-screen', 'p-0');
+        btnFs.textContent = '⛶ Pantalla completa';
+    }
+});
         })();
     </script>
 </body>

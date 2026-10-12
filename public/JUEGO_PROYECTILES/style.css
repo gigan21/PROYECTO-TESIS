@@ -649,3 +649,85 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* ==========================================================================
+   🔗 TELEMETRY · informe de sesión en pantallas de fin de partida
+   ========================================================================== */
+.telemetry-summary {
+    margin: 0 0 20px;
+    max-height: min(46vh, 380px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    text-align: left;
+}
+.telemetry-summary:empty { display: none; }
+
+.telem-block {
+    margin: 0 0 12px;
+    padding: 12px 14px 10px;
+    border: 1px solid rgba(122, 77, 255, 0.4);
+    border-radius: 6px;
+    background: rgba(10, 16, 46, 0.72);
+}
+.telem-block:last-child { margin-bottom: 0; }
+
+.telem-title {
+    margin: 0 0 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+}
+
+.telem-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 18px;
+}
+.telem-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(122, 77, 255, 0.18);
+}
+.telem-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--dim);
+}
+.telem-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #19f2ff;
+    text-shadow: 0 0 8px rgba(25, 242, 255, 0.5);
+    white-space: nowrap;
+}
+
+.telem-analysis p {
+    margin: 0 0 8px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.35;
+    color: var(--ink);
+}
+.telem-analysis p:last-child { margin-bottom: 0; }
+
+@media (max-width: 560px) {
+    .telemetry-summary { max-height: 40vh; margin-bottom: 14px; }
+    .telem-rows { grid-template-columns: 1fr; }
+    .telem-block { padding: 10px 11px 8px; }
+}
+
+/* 🔗 TELEMETRY: en móvil el panel de física (z-index 50) taparía el informe de fin de partida */
+@media (max-width: 760px) {
+    body:has(#screen-over.is-open) .pdp,
+    body:has(#screen-win.is-open) .pdp { visibility: hidden; }
+}

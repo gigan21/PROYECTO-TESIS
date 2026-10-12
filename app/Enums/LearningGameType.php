@@ -12,5 +12,8 @@ enum LearningGameType: string
 {
     case Crossword = 'crossword';
     case Challenge = 'challenge';
+    case Projectiles = 'projectiles';
+    /** Lanza la Cura — MRU, MRUV, caída libre y lanzamiento. */
+    case Cure = 'cure';
     case Other = 'other';
 }
