@@ -41,6 +41,37 @@ body {
   min-height: 100vh;
   font-size: 1.05rem;
 }
+.hud-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  justify-content: center;
+  align-items: center;
+  max-width: 880px;
+  margin: 0.5rem auto 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  color: var(--tinta-suave);
+  background: rgba(20, 23, 29, 0.75);
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+}
+.hud-bar b { color: var(--tinta); font-weight: 700; }
+.hud-daily { margin-left: auto; }
+.reward-toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(35, 163, 106, 0.95);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
 .app { max-width: 880px; margin: 0 auto; padding: 1rem; }
 .screen { display: none; }
 .screen.active { display: block; }

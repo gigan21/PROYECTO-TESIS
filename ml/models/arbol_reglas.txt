@@ -1,0 +1,44 @@
+REGLAS DEL ÁRBOL C4.5
+======================================================================
+
+Features usadas: 42
+Clases aprendidas: 12
+Accuracy en test: 76.19%
+CV promedio: 70.81%
+Profundidad: 5
+Hojas: 12
+
+|--- games_played_count <= 2.50
+|   |--- class: recomendar_practicar_mas
+|--- games_played_count >  2.50
+|   |--- games_played_count <= 4.50
+|   |   |--- questions_accuracy_easy <= 0.17
+|   |   |   |--- crossword_words_level_4_7 <= 3.25
+|   |   |   |   |--- crossword_words_level_1_3 <= 2.00
+|   |   |   |   |   |--- class: reforzar_concepto_velocidad_constante
+|   |   |   |   |--- crossword_words_level_1_3 >  2.00
+|   |   |   |   |   |--- class: reforzar_formula_tiempo_caida_libre
+|   |   |   |--- crossword_words_level_4_7 >  3.25
+|   |   |   |   |--- cure_formulas_mastered_count <= 10.50
+|   |   |   |   |   |--- class: sin_recomendacion_especifica
+|   |   |   |   |--- cure_formulas_mastered_count >  10.50
+|   |   |   |   |   |--- class: reforzar_precision_decimales
+|   |   |--- questions_accuracy_easy >  0.17
+|   |   |   |--- cure_avg_accuracy <= 0.54
+|   |   |   |   |--- crossword_max_level_reached <= 11.75
+|   |   |   |   |   |--- class: reforzar_relacion_gravedad_alcance
+|   |   |   |   |--- crossword_max_level_reached >  11.75
+|   |   |   |   |   |--- class: reforzar_formula_distancia_mruv
+|   |   |   |--- cure_avg_accuracy >  0.54
+|   |   |   |   |--- cure_total_sessions <= 3.50
+|   |   |   |   |   |--- class: avanzar_a_leyes_newton
+|   |   |   |   |--- cure_total_sessions >  3.50
+|   |   |   |   |   |--- class: reforzar_precision_decimales
+|   |--- games_played_count >  4.50
+|   |   |--- cure_won_rate <= 0.50
+|   |   |   |--- projectile_avg_angle <= 87.50
+|   |   |   |   |--- class: reforzar_componentes_vx_vy
+|   |   |   |--- projectile_avg_angle >  87.50
+|   |   |   |   |--- class: reforzar_angulo_tiro_parabolico
+|   |   |--- cure_won_rate >  0.50
+|   |   |   |--- class: avanzar_a_movimiento_circular

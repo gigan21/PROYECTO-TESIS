@@ -38,17 +38,18 @@ class CureGameController extends Controller
         $sessionId = (string) ($telemetry['sessionId'] ?? '');
 
         $nivelesCompletados = (int) ($telemetry['nivelesCompletados'] ?? 0);
+        $abandoned = filter_var($telemetry['abandoned'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         if ($nivelesCompletados < 1) {
-            return $this->jsonPayload($user, 0, 0, false, false);
+            return $this->jsonPayload($user, 0, 0, false, false, $abandoned);
         }
 
         $finished = filter_var($telemetry['finished'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $abandoned = filter_var($telemetry['abandoned'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         try {
             $this->recorder->upsert($user, $telemetry);
         } catch (InvalidArgumentException) {
-            return $this->jsonPayload($user, 0, 0, false, false);
+            return $this->jsonPayload($user, 0, 0, false, false, $abandoned);
         }
 
         $coinsDelta = 0;
@@ -100,7 +101,7 @@ class CureGameController extends Controller
             }
         }
 
-        return $this->jsonPayload($user, $coinsDelta, $xpDelta, $capped, $duplicate);
+        return $this->jsonPayload($user, $coinsDelta, $xpDelta, $capped, $duplicate, $abandoned);
     }
 
     /**
@@ -161,12 +162,23 @@ class CureGameController extends Controller
         ]);
     }
 
-    private function jsonPayload($user, int $coinsDelta, int $xpDelta, bool $capped, bool $duplicate): JsonResponse
-    {
+    private function jsonPayload(
+        $user,
+        int $coinsDelta,
+        int $xpDelta,
+        bool $capped,
+        bool $duplicate,
+        bool $abandoned = false,
+    ): JsonResponse {
         $user->loadMissing('studentProfile');
         $earned = $this->dailyCap->earnedToday($user->id);
         $cap = $this->dailyCap->dailyCap();
         $balance = $this->coins->getBalance($user);
+
+        if ($abandoned) {
+            $coinsDelta = 0;
+            $xpDelta = 0;
+        }
 
         return response()->json([
             'coins_delta' => $coinsDelta,
@@ -176,6 +188,7 @@ class CureGameController extends Controller
             'xp' => (int) ($user->studentProfile?->xp_points ?? 0),
             'capped' => $capped,
             'duplicate' => $duplicate,
+            'abandoned' => $abandoned,
             'daily_earned' => $earned,
             'daily_cap' => $cap,
         ]);

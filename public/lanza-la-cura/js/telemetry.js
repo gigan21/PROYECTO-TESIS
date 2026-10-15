@@ -92,7 +92,9 @@
       won: !!extra.won,
       finished: !!extra.finished,
       abandoned: !!extra.abandoned,
-      levelCompleted: extra.levelCompleted ?? null,
+      ...(extra.levelCompleted !== undefined && extra.levelCompleted !== null 
+        ? { levelCompleted: extra.levelCompleted } 
+        : {}),
       pistaUsadas: session.pistaUsadas,
       totalTimeSec: Math.max(0, Math.round((endTs - session.startedAt) / 1000)),
       formulasMastered: extra.formulasMastered ?? [],

@@ -75,6 +75,11 @@ class User extends Authenticatable
         return $this->hasMany(AiRecommendation::class);
     }
 
+    public function featureSnapshots(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StudentFeatureSnapshot::class);
+    }
+
     public function isDocente(): bool
     {
         return $this->role === 'docente';

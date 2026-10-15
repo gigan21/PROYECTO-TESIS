@@ -6,7 +6,7 @@ const Game = (() => {
 
   const $ = (id) => document.getElementById(id);
   // ✅ NUEVO: Se agregó 'failsCount' para contar los fallos acumulados
-  const S = { rounds: [], i: 0, hits: 0, failsCount: 0, progress: 0, locked: true, timer: null, deadline: 0, results: [], fails: [] };
+  const S = { rounds: [], i: 0, hits: 0, failsCount: 0, progress: 0, locked: true, timer: null, deadline: 0, results: [], fails: [], roundStartedAt: 0, rewardSent: false };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -15,10 +15,23 @@ const Game = (() => {
   }
 
   // ---------- Flujo ----------
+  function enviarRecompensaFinal() {
+    if (S.rewardSent) return;
+    S.rewardSent = true;
+    if (typeof ChartRaceTelemetry === 'undefined' || typeof ChartRaceReward === 'undefined') return;
+    const exploded = S.failsCount >= 4;
+    const completed = S.results.length >= ROUNDS || exploded;
+    const won = S.hits >= 5 && !exploded && S.progress >= 100;
+    const telemetry = ChartRaceTelemetry.endSession({ exploded, completed, won });
+    if (telemetry) ChartRaceReward.sendReward(telemetry);
+  }
+
   function start() {
     if (typeof Chart === 'undefined') { $('start-error').hidden = false; return; }
+    // 🔗 TELEMETRIA CARRERA
+    if (typeof ChartRaceTelemetry !== 'undefined') ChartRaceTelemetry.startSession();
     // ✅ Se reinicia 'failsCount' a 0
-    Object.assign(S, { rounds: Questions.buildGame(), i: 0, hits: 0, failsCount: 0, progress: 0, results: [], fails: [] });
+    Object.assign(S, { rounds: Questions.buildGame(), i: 0, hits: 0, failsCount: 0, progress: 0, results: [], fails: [], roundStartedAt: 0, rewardSent: false });
     Animation.resetCar();
     show('screen-game');
     showRound();
@@ -26,6 +39,7 @@ const Game = (() => {
 
   function showRound() {
     const r = S.rounds[S.i];
+    S.roundStartedAt = Date.now();
     S.locked = false;
     Graphs.destroyAll();
     const ch = $('challenge');
@@ -130,6 +144,29 @@ const Game = (() => {
     S.results.push(right);
     Questions.noteResult(r.key, right);
     if (!right) S.fails.push({ topic: r.topic, tip: r.tip });
+    if (typeof ChartRaceTelemetry !== 'undefined') {
+      let wrongAnswer = null;
+      if (timeout) wrongAnswer = 'timeout';
+      else if (!right) {
+        wrongAnswer = r.type === 'choose'
+          ? `Opción ${idx + 1}`
+          : (r.options[idx]?.label ?? '');
+      }
+      const graphRef = r.type === 'choose'
+        ? (idx != null ? r.options[idx]?.graph : r.options[0]?.graph)
+        : r.graph;
+      ChartRaceTelemetry.recordRound({
+        round_number: S.i + 1,
+        question_type: r.type,
+        graph_kind: graphRef?.kind ?? '',
+        graph_type: graphRef?.type ?? '',
+        topic: r.topic ?? '',
+        correct: right,
+        answered_in_seconds: Math.max(0, (Date.now() - S.roundStartedAt) / 1000),
+        timed_out: timeout,
+        wrong_answer: wrongAnswer,
+      });
+    }
     renderDots();
 
     // "Predice": la curva se dibuja de izquierda a derecha y se anima la consecuencia
@@ -206,6 +243,7 @@ const Game = (() => {
       rev.append(li);
     });
     rev.hidden = !rev.children.length;
+    enviarRecompensaFinal();
     show('screen-end');
   }
 

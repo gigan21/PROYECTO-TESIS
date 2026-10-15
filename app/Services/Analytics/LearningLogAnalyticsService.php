@@ -39,6 +39,7 @@ class LearningLogAnalyticsService
             'challenge' => 'Sala de Retos',
             'projectiles' => 'Simulador de proyectiles',
             'cure' => 'Lanza la Cura',
+            'chart_race' => 'Carrera de Gráficas',
             'other' => 'Otros'
         ];
 
@@ -113,6 +114,7 @@ class LearningLogAnalyticsService
             'challenge' => 'Sala de Retos',
             'projectiles' => 'Simulador de proyectiles',
             'cure' => 'Lanza la Cura',
+            'chart_race' => 'Carrera de Gráficas',
             'other' => 'Otros'
         ];
 

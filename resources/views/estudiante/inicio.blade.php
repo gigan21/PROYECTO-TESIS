@@ -5,6 +5,41 @@
 @section('title', 'Inicio Estudiante')
 
 @section('content')
+{{-- 🔗 FASE 6 --}}
+@php
+    $rec = $recommendation ?? null;
+    $slug = $rec?->reason;
+    $tone = str_starts_with((string) $slug, 'avanzar_')
+        ? 'emerald'
+        : (str_starts_with((string) $slug, 'reforzar_') ? 'amber' : 'indigo');
+    $toneBorder = match ($tone) {
+        'emerald' => 'border-emerald-400/40',
+        'amber' => 'border-amber-400/40',
+        default => 'border-indigo-400/40',
+    };
+@endphp
+<section class="mb-6 rounded-2xl border {{ $rec ? $toneBorder : 'border-white/20' }} bg-white/10 p-5 text-white shadow-xl backdrop-blur-md">
+    @if (session('recommendation_notice'))
+        <p class="mb-3 text-sm text-slate-200">{{ session('recommendation_notice') }}</p>
+    @endif
+    @if (! $rec)
+        <p class="text-sm text-slate-200">Sigue jugando para recibir recomendaciones personalizadas.</p>
+    @else
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-300">Recomendación</p>
+        <h2 class="mt-1 text-lg font-bold">{{ __('recommendations.'.$slug.'.label', [], 'es') }}</h2>
+        <p class="mt-1 text-sm text-slate-300">{{ $rec->created_at?->diffForHumans() }}</p>
+        <div class="mt-3 flex flex-wrap gap-3 text-sm">
+            <a href="{{ route('estudiante.recomendacion') }}" class="font-semibold text-indigo-200 underline">Ver más</a>
+            <form method="post" action="{{ route('estudiante.recomendacion.refresh') }}">
+                @csrf
+                <button type="submit" class="font-semibold text-slate-200 underline">Actualizar</button>
+            </form>
+        </div>
+    @endif
+</section>
+
+<!--@include('partials.struggle-alerts', ['alerts' => $struggleAlerts ?? []])-->
+
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 
     <!-- ---------- COLUMNA IZQUIERDA: ESTADO DEL HÉROE ---------- -->

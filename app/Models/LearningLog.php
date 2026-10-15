@@ -34,6 +34,7 @@ class LearningLog extends Model
         'hard_skips',
         'hard_time_seconds',
         'completed_at',
+        'abandoned',
     ];
 
     protected function casts(): array
@@ -59,6 +60,7 @@ class LearningLog extends Model
             'hard_skips' => 'integer',
             'hard_time_seconds' => 'integer',
             'completed_at' => 'datetime',
+            'abandoned' => 'boolean',
         ];
     }
 

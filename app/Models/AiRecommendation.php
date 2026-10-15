@@ -14,13 +14,21 @@ class AiRecommendation extends Model
         'topic_id',
         'recommended_content_id',
         'reason',
+        'confidence',
+        'model_version',
         'is_completed',
+        'teacher_feedback',
+        'teacher_feedback_at',
+        'teacher_feedback_by',
     ];
 
     protected function casts(): array
     {
         return [
             'is_completed' => 'boolean',
+            'confidence' => 'float',
+            'teacher_feedback' => 'boolean',
+            'teacher_feedback_at' => 'datetime',
         ];
     }
 
@@ -37,5 +45,10 @@ class AiRecommendation extends Model
     public function recommendedContent(): BelongsTo
     {
         return $this->belongsTo(Content::class, 'recommended_content_id');
+    }
+
+    public function feedbackBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'teacher_feedback_by');
     }
 }

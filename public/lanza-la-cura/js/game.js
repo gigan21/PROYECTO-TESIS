@@ -585,6 +585,15 @@ const Game = (() => {
     }
   };
 
+  window.cureReturnToMenu = function cureReturnToMenu() {
+    window.cureAbandonIfNeeded();
+    const target = window.__cureHomeUrl || '/estudiante/inicio';
+    window.setTimeout(() => {
+      const topWin = window.top && window.top !== window ? window.top : window;
+      topWin.location.href = target;
+    }, 500);
+  };
+
   return {
     iniciar,
     verificarYLanzar,

@@ -15,5 +15,6 @@ enum LearningGameType: string
     case Projectiles = 'projectiles';
     /** Lanza la Cura — MRU, MRUV, caída libre y lanzamiento. */
     case Cure = 'cure';
+    case ChartRace = 'chart_race';
     case Other = 'other';
 }

@@ -33,6 +33,7 @@ class CureGameSession extends Model
         'errors_by_type',
         'levels_json',
         'telemetry_json',
+        'abandoned',
     ];
 
     protected function casts(): array
@@ -40,6 +41,7 @@ class CureGameSession extends Model
         return [
             'accuracy' => 'float',
             'won' => 'boolean',
+            'abandoned' => 'boolean',
             'formulas_mastered' => 'array',
             'formulas_review' => 'array',
             'errors_by_type' => 'array',

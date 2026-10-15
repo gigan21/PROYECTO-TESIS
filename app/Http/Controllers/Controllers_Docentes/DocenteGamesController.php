@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Controllers_Docentes;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Analytics\ChartRaceAnalyticsService;
 use App\Services\Analytics\CureAnalyticsService;
 use App\Services\Projectiles\ProjectileAnalyticsService;
 use App\Support\Classroom;
@@ -17,6 +18,7 @@ class DocenteGamesController extends Controller
     public function __construct(
         private readonly ProjectileAnalyticsService $analytics,
         private readonly CureAnalyticsService $cureAnalytics,
+        private readonly ChartRaceAnalyticsService $chartRaceAnalytics,
     ) {}
 
     public function index(): View
@@ -24,6 +26,41 @@ class DocenteGamesController extends Controller
         return view('docente.juegos.index', [
             'overview' => $this->analytics->globalOverview(),
             'cureOverview' => $this->cureAnalytics->globalOverview(),
+            'chartRaceOverview' => $this->chartRaceAnalytics->globalOverview(),
+        ]);
+    }
+
+    public function chartRaceClassrooms(): View
+    {
+        return view('docente.juegos.chart_race.classrooms', [
+            'rows' => $this->chartRaceAnalytics->byClassroom(),
+        ]);
+    }
+
+    public function chartRaceStudents(string $classroom): View
+    {
+        $canonical = Classroom::fromSlug($classroom);
+
+        return view('docente.juegos.chart_race.students', [
+            'classroom' => $canonical,
+            'classroomSlug' => $classroom,
+            'rows' => $this->chartRaceAnalytics->byStudent($canonical),
+        ]);
+    }
+
+    public function chartRaceStudentDetail(string $classroom, User $user): View
+    {
+        $this->assertStudentAuthorized($classroom, $user);
+
+        return view('docente.juegos.chart_race.student_detail', [
+            'classroom' => Classroom::fromSlug($classroom),
+            'classroomSlug' => $classroom,
+            'student' => $user,
+            'aggregate' => $this->chartRaceAnalytics->studentAggregate($user->id),
+            'timeline' => $this->chartRaceAnalytics->studentTimeline($user->id, 10),
+            'weakAreas' => $this->chartRaceAnalytics->studentWeakAreas($user->id),
+            'byType' => $this->chartRaceAnalytics->studentByType($user->id),
+            'coins_earned' => $this->chartRaceAnalytics->studentCoinsEarned($user->id),
         ]);
     }
 

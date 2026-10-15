@@ -54,9 +54,9 @@
       // aliens: Cantidad | speed: Velocidad lateral | descent: Cuánto bajan al tocar el borde
       { aliens: 8, speed: 5, descent: 15 },
       { aliens: 20, speed: 40, descent: 25 },
-      { aliens: 32, speed: 80, descent: 30 },
-      { aliens: 40, speed: 95, descent: 35 },
-      { aliens: 50, speed: 110, descent: 40 }
+      { aliens: 2, speed: 50, descent: 20 },
+      { aliens: 2, speed: 30, descent: 20 },
+      { aliens: 2, speed: 30, descent: 30 }
     ]
   };
 

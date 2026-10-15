@@ -9,7 +9,7 @@ use App\Models\CoinTransaction;
 class GamesDailyCoinCapService
 {
     /** Fuentes que comparten el tope diario de monedas en juegos. */
-    private const GAME_SOURCES = ['projectiles', 'cure'];
+    private const GAME_SOURCES = ['projectiles', 'cure', 'chart_race'];
 
     public function dailyCap(): int
     {

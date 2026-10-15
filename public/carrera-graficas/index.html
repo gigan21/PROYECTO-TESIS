@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
+<div class="hud-bar" id="game-hud" aria-live="polite">
+  <span>🪙 <b id="hud-coins">—</b></span>
+  <span>⭐ XP <b id="hud-xp">—</b></span>
+  <span class="hud-daily" id="hud-daily">—</span>
+</div>
+<p id="reward-toast" class="reward-toast" hidden role="status"></p>
 <main class="app">
 
   <!-- ========== PANTALLA INICIAL ========== -->
@@ -107,6 +113,8 @@
 <script src="js/questions-extra.js"></script>
 <script src="js/graphs.js"></script>
 <script src="js/animation.js"></script>
+<script src="js/telemetry.js"></script>
+<script src="js/reward.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

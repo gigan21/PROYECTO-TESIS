@@ -11,6 +11,7 @@ use App\Models\Topic;
 use App\Models\User;
 use App\Support\Classroom;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 class CureSessionRecorder
@@ -32,7 +33,7 @@ class CureSessionRecorder
         if (! is_string($sessionId) || $sessionId === '') {
             throw new InvalidArgumentException('telemetry.sessionId requerido');
         }
-
+        
         $nivelesCompletados = (int) ($telemetry['nivelesCompletados'] ?? 0);
         if ($nivelesCompletados < 1) {
             throw new InvalidArgumentException('telemetry.nivelesCompletados debe ser >= 1');
@@ -65,6 +66,7 @@ class CureSessionRecorder
 
             return $session->fresh();
         });
+        
     }
 
     private function resolveClassroom(User $user): ?string
@@ -119,6 +121,7 @@ class CureSessionRecorder
             'rank' => (string) ($telemetry['rank'] ?? ''),
             'max_streak' => (int) ($telemetry['maxStreak'] ?? 0),
             'won' => filter_var($telemetry['won'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'abandoned' => filter_var($telemetry['abandoned'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'pista_usadas' => (int) ($telemetry['pistaUsadas'] ?? 0),
             'total_time_sec' => (int) ($telemetry['totalTimeSec'] ?? 0),
             'formulas_mastered' => $telemetry['formulasMastered'] ?? [],
@@ -139,6 +142,7 @@ class CureSessionRecorder
         $hits = (int) ($telemetry['hits'] ?? 0);
         $accuracy = (float) ($telemetry['accuracy'] ?? 0);
         $finished = filter_var($telemetry['finished'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $abandoned = filter_var($telemetry['abandoned'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $calculator = app(CureCoinRewardCalculator::class);
         $earnedXp = $this->estimatedTotalXp($telemetry, $calculator);
 
@@ -150,10 +154,15 @@ class CureSessionRecorder
             'earned_xp' => $earnedXp,
             'attempts' => $attempts,
             'correct_attempts' => $hits,
+            
         ];
 
         if ($finished) {
             $payload['completed_at'] = now();
+        }
+
+        if (Schema::hasColumn('learning_logs', 'abandoned')) {
+            $payload['abandoned'] = $abandoned;
         }
 
         return $payload;
@@ -170,7 +179,8 @@ class CureSessionRecorder
         $perLevel = (int) config('cure.xp_per_level', 1);
         $xp = $levels * $perLevel;
 
-        if ($calculator->countsAsWin($telemetry)) {
+        $abandoned = filter_var($telemetry['abandoned'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        if (! $abandoned && $calculator->countsAsWin($telemetry)) {
             $xp += (int) config('cure.xp_win_bonus', 5);
         }
 

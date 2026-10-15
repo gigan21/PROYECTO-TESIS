@@ -30,7 +30,7 @@ class CureGameRewardRequest extends FormRequest
             'telemetry.won' => ['nullable', 'boolean'],
             'telemetry.finished' => ['nullable', 'boolean'],
             'telemetry.abandoned' => ['nullable', 'boolean'],
-            'telemetry.levelCompleted' => ['nullable', 'integer', 'min:1', 'max:4'],
+             'telemetry.levelCompleted' => ['nullable', 'integer'],
             'telemetry.pistaUsadas' => ['nullable', 'integer', 'min:0'],
             'telemetry.totalTimeSec' => ['nullable', 'integer', 'min:0'],
             'telemetry.formulasMastered' => ['nullable', 'array'],

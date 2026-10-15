@@ -4,12 +4,53 @@
   let rewardUrl = '';
   let statusUrl = '';
   let csrfToken = '';
+  let homeUrl = '/estudiante/inicio';
 
   function readIntegrationParams() {
     const params = new URLSearchParams(window.location.search);
     rewardUrl = params.get('reward_url') || '';
     statusUrl = params.get('status_url') || '';
     csrfToken = params.get('csrf') || '';
+    homeUrl = params.get('home_url') || homeUrl;
+    window.__cureHomeUrl = homeUrl;
+  }
+
+  function triggerAbandonIfNeeded() {
+    if (typeof window.cureAbandonIfNeeded === 'function') {
+      window.cureAbandonIfNeeded();
+    }
+  }
+
+  function postRewardKeepalive(body) {
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken;
+
+    if (csrfToken) {
+      fetch(rewardUrl, {
+        method: 'POST',
+        headers,
+        credentials: 'same-origin',
+        body,
+        keepalive: true,
+      }).catch(() => {});
+      return;
+    }
+
+    if (typeof navigator.sendBeacon === 'function') {
+      const blob = new Blob([body], { type: 'application/json' });
+      if (navigator.sendBeacon(rewardUrl, blob)) return;
+    }
+
+    fetch(rewardUrl, {
+      method: 'POST',
+      headers,
+      credentials: 'same-origin',
+      body,
+      keepalive: true,
+    }).catch(() => {});
   }
 
   function fetchStatus() {
@@ -58,13 +99,7 @@
     const body = JSON.stringify({ telemetry });
 
     if (opts.beacon) {
-      fetch(rewardUrl, {
-        method: 'POST',
-        headers,
-        credentials: 'same-origin',
-        body,
-        keepalive: true,
-      }).catch(() => {});
+      postRewardKeepalive(body);
       return;
     }
 
@@ -118,11 +153,24 @@
       UI.actualizarProximidadInput(valor);
     });
 
-    window.addEventListener('pagehide', () => {
-      if (typeof window.cureAbandonIfNeeded === 'function') {
-        window.cureAbandonIfNeeded();
+    window.addEventListener('pagehide', triggerAbandonIfNeeded);
+    window.addEventListener('beforeunload', triggerAbandonIfNeeded);
+
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data && event.data.type === 'cure:abandon') {
+        triggerAbandonIfNeeded();
       }
     });
+
+    const btnMenu = document.getElementById('btn-volver-menu');
+    if (btnMenu) {
+      btnMenu.addEventListener('click', () => {
+        if (typeof window.cureReturnToMenu === 'function') {
+          window.cureReturnToMenu();
+        }
+      });
+    }
 
     requestAnimationFrame(loop);
   }

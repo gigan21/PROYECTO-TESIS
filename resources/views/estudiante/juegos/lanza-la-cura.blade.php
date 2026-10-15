@@ -6,7 +6,7 @@
 <div class="relative -mx-4 -my-8 md:-mx-6" style="height: calc(100vh - 64px);">
     <iframe
         id="lanza-cura-frame"
-        src="{{ asset('lanza-la-cura/index.html') }}?csrf={{ urlencode(csrf_token()) }}&reward_url={{ urlencode(route('estudiante.cure.api.reward')) }}&status_url={{ urlencode(route('estudiante.cure.api.status')) }}"
+        src="{{ asset('lanza-la-cura/index.html') }}?csrf={{ urlencode(csrf_token()) }}&reward_url={{ urlencode(route('estudiante.cure.api.reward')) }}&status_url={{ urlencode(route('estudiante.cure.api.status')) }}&home_url={{ urlencode(route('estudiante.inicio')) }}"
         class="h-full w-full border-0"
         title="Lanza la Cura"
         allow="fullscreen"
@@ -36,6 +36,14 @@
                 refreshStatus();
             }
         });
+
+        const frame = document.getElementById('lanza-cura-frame');
+        function notifyIframeAbandon() {
+            if (!frame || !frame.contentWindow) return;
+            frame.contentWindow.postMessage({ type: 'cure:abandon' }, window.location.origin);
+        }
+        window.addEventListener('pagehide', notifyIframeAbandon);
+        window.addEventListener('beforeunload', notifyIframeAbandon);
     })();
 </script>
 @endsection
